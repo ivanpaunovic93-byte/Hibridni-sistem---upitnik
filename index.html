@@ -1,482 +1,1208 @@
 <!DOCTYPE html>
 <html lang="sr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>Hybrid Health System — Hibridna Analiza</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    background: #0a0f1a;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #e0e0e0;
-    padding: 20px;
-  }
-  .container {
-    max-width: 700px;
-    margin: 0 auto;
-    background: rgba(20, 30, 45, 0.9);
-    border-radius: 20px;
-    padding: 20px;
-    box-shadow: 0 0 20px rgba(0, 200, 255, 0.2);
-    border: 1px solid #00ccff;
-  }
-  h1, h2 {
-    text-align: center;
-    color: #00ccff;
-    font-family: monospace;
-  }
-  .section {
-    margin: 20px 0;
-    padding: 15px;
-    background: #0f1a24;
-    border-radius: 12px;
-    border-left: 4px solid #00ccff;
-  }
-  .section-title {
-    font-size: 1.2rem;
-    font-weight: bold;
-    margin-bottom: 15px;
-    color: #00ccff;
-  }
-  .question {
-    margin-bottom: 20px;
-  }
-  label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-  }
-  input, select, textarea {
-    width: 100%;
-    padding: 8px;
-    border-radius: 8px;
-    border: 1px solid #2c3e5c;
-    background: #1a2533;
-    color: white;
-    margin-bottom: 10px;
-  }
-  .opts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 5px;
-  }
-  .opt-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: #1a2533;
-    padding: 5px 10px;
-    border-radius: 20px;
-    cursor: pointer;
-  }
-  .opt-item input {
-    width: auto;
-    margin: 0;
-  }
-  button {
-    background: #00ccff;
-    color: #0a0f1a;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 30px;
-    font-weight: bold;
-    font-size: 1rem;
-    cursor: pointer;
-    width: 100%;
-    margin-top: 20px;
-  }
-  .hidden {
-    display: none;
-  }
-  .results {
-    margin-top: 20px;
-    padding: 15px;
-    background: #0f1a24;
-    border-radius: 12px;
-  }
-  .flag {
-    background: #ffaa0022;
-    border-left: 4px solid #ffaa00;
-    padding: 10px;
-    margin: 10px 0;
-  }
-  hr {
-    border-color: #00ccff33;
-    margin: 15px 0;
-  }
-  .extra {
-    font-size: 0.85rem;
-    color: #aaa;
-    margin-top: 5px;
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Hybrid Health System — HIBRIDNA ANALIZA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0c14;
+            --cyan: #00d4ff;
+            --cyan-dim: rgba(0,212,255,0.1);
+            --gold: #ffcc00;
+            --gold-dim: rgba(255,204,0,0.15);
+            --purple: #b000ff;
+            --white: #eef5ff;
+            --muted: #8a9bb5;
+            --border: rgba(0,212,255,0.25);
+            --border-gold: rgba(255,204,0,0.4);
+            --green: #00ff88;
+            --red: #ff4466;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #05070c;
+            color: var(--white);
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            line-height: 1.5;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* CANVAS ZA ANIMACIJE */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        /* PROGRESS BAR */
+        #progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            z-index: 100;
+            background: linear-gradient(90deg, var(--gold), var(--cyan), var(--purple));
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 8px var(--gold);
+        }
+        
+        /* GLAVNI SADRŽAJ */
+        .shell {
+            position: relative;
+            z-index: 10;
+            max-width: 750px;
+            margin: 0 auto;
+            padding: 0 20px 80px;
+        }
+        
+        .header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+            z-index: 10;
+        }
+        
+        .header-logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: var(--gold);
+            text-shadow: 0 0 5px var(--gold-dim);
+        }
+        
+        .header-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 9px;
+            color: var(--green);
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: blink 1.5s infinite;
+            box-shadow: 0 0 6px var(--green);
+        }
+        
+        @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+        
+        /* INTRO */
+        .intro {
+            text-align: center;
+            padding: 40px 0 30px;
+        }
+        
+        .intro h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 28px;
+            background: linear-gradient(135deg, #fff, var(--cyan), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .intro-name {
+            font-size: 11px;
+            letter-spacing: 3px;
+            color: var(--muted);
+            margin: 10px 0;
+        }
+        
+        .health-icons {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 25px 0;
+        }
+        
+        .health-icon {
+            text-align: center;
+            animation: iconFloat 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 6px var(--cyan));
+            font-size: 42px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .health-icon:hover {
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 12px var(--gold));
+        }
+        
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        
+        .hud-stats {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .hud-stat {
+            border: 1px solid var(--border);
+            background: rgba(0,212,255,0.05);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            backdrop-filter: blur(4px);
+            transition: all 0.2s;
+        }
+        
+        .hud-stat:hover {
+            border-color: var(--gold);
+            box-shadow: 0 0 15px var(--gold-dim);
+            transform: translateY(-2px);
+        }
+        
+        .hud-stat-num {
+            font-family: 'Orbitron', monospace;
+            font-size: 22px;
+            color: var(--gold);
+        }
+        
+        .hud-stat-label {
+            font-size: 9px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .pillars {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .pillar {
+            padding: 5px 14px;
+            border: 1px solid var(--border);
+            background: rgba(0,212,255,0.05);
+            border-radius: 20px;
+            font-size: 10px;
+            color: var(--cyan);
+            transition: all 0.2s;
+        }
+        
+        .pillar:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+            transform: translateY(-2px);
+        }
+        
+        .disclaimer-box {
+            border: 1px solid var(--border);
+            background: rgba(0,0,0,0.4);
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 9px;
+            margin-bottom: 30px;
+            text-align: center;
+            backdrop-filter: blur(4px);
+        }
+        
+        /* SEKCJE */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 25px 0 15px;
+        }
+        
+        .sec-line, .sec-line-r {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--cyan), transparent);
+        }
+        
+        .sec-line-r {
+            background: linear-gradient(90deg, transparent, var(--cyan));
+        }
+        
+        .sec-tag {
+            font-family: 'Orbitron', monospace;
+            font-size: 10px;
+            color: var(--gold);
+            border: 1px solid var(--border-gold);
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: rgba(255,204,0,0.05);
+        }
+        
+        .sec-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+        
+        /* PANELI PITANJA */
+        .q-block {
+            margin-bottom: 22px;
+        }
+        
+        .q-panel {
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: rgba(15,17,26,0.7);
+            padding: 18px;
+            position: relative;
+            backdrop-filter: blur(8px);
+            transition: all 0.2s;
+        }
+        
+        .q-panel:hover {
+            border-color: var(--gold);
+            box-shadow: 0 0 18px rgba(255,204,0,0.1);
+        }
+        
+        .q-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            bottom: 0;
+            background: linear-gradient(180deg, var(--cyan), var(--gold));
+            border-radius: 4px 0 0 4px;
+        }
+        
+        .q-label {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 16px;
+            color: #fff;
+            margin-bottom: 14px;
+            font-weight: 600;
+        }
+        
+        .q-sub {
+            font-size: 11px;
+            color: var(--muted);
+            display: block;
+            margin-top: 5px;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 14px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--white);
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        
+        input:focus, textarea:focus {
+            border-color: var(--gold);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255,204,0,0.1);
+        }
+        
+        .opts {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .opt-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .opt-item:hover {
+            border-color: var(--gold);
+            background: rgba(255,204,0,0.05);
+        }
+        
+        .opt-item input {
+            display: none;
+        }
+        
+        .opt-dot, .opt-box {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+        
+        .opt-dot {
+            border-radius: 50%;
+            border: 2px solid var(--border);
+        }
+        
+        .opt-box {
+            border-radius: 5px;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .opt-item.selected {
+            border-color: var(--gold);
+            background: rgba(255,204,0,0.08);
+        }
+        
+        .opt-item.selected .opt-dot {
+            background: var(--gold);
+            border-color: var(--gold);
+            box-shadow: 0 0 8px var(--gold);
+        }
+        
+        .opt-item.selected .opt-box {
+            background: var(--gold);
+            border-color: var(--gold);
+        }
+        
+        .opt-item.selected .opt-box::after {
+            content: '✓';
+            font-size: 11px;
+            color: #000;
+            font-weight: bold;
+        }
+        
+        .opt-text {
+            font-size: 14px;
+            color: var(--white);
+        }
+        
+        .extra-wrap {
+            margin-top: 12px;
+        }
+        
+        .extra-label {
+            font-size: 10px;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            display: block;
+        }
+        
+        /* SKALE */
+        .scale-grid-10 {
+            display: grid;
+            grid-template-columns: repeat(10,1fr);
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        
+        .scale-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 1;
+            border: 1px solid var(--border);
+            background: rgba(0,0,0,0.4);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .scale-btn:hover {
+            border-color: var(--cyan);
+            background: rgba(0,212,255,0.1);
+            transform: scale(1.05);
+        }
+        
+        .scale-btn.active {
+            border-color: var(--gold);
+            background: rgba(255,204,0,0.15);
+            box-shadow: 0 0 10px var(--gold-dim);
+        }
+        
+        .snum {
+            font-family: 'Orbitron', monospace;
+            font-size: 13px;
+            color: var(--muted);
+        }
+        
+        .scale-btn.active .snum {
+            color: var(--gold);
+        }
+        
+        .scale-labels-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            color: var(--muted);
+            margin-top: 6px;
+        }
+        
+        /* UPLOAD */
+        .upload-zone {
+            border: 1px dashed var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .upload-zone:hover {
+            border-color: var(--gold);
+            background: rgba(255,204,0,0.03);
+        }
+        
+        .upload-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        
+        .upload-text {
+            font-size: 10px;
+            color: var(--muted);
+        }
+        
+        .upload-previews {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+            justify-content: center;
+        }
+        
+        .preview-thumb {
+            width: 55px;
+            height: 55px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 1px solid var(--gold);
+        }
+        
+        /* DUGME */
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 40px;
+            background: linear-gradient(135deg, #0a1a2f, #0a0f1a);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            font-family: 'Orbitron', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 10px rgba(255,204,0,0.2);
+            animation: pulseRing 2s infinite;
+        }
+        
+        @keyframes pulseRing {
+            0% { box-shadow: 0 0 0 0 rgba(255,204,0,0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(255,204,0,0); }
+            100% { box-shadow: 0 0 0 0 rgba(255,204,0,0); }
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #0f2540, #0f1420);
+            box-shadow: 0 0 20px var(--gold);
+            transform: translateY(-2px);
+        }
+        
+        .btn-row {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        /* REZULTATI */
+        .results-header {
+            text-align: center;
+            padding: 40px 0 30px;
+        }
+        
+        .result-panel {
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 15px;
+            background: rgba(15,17,26,0.7);
+            backdrop-filter: blur(8px);
+        }
+        
+        .result-panel.flag-warn {
+            border-color: var(--gold);
+            background: rgba(255,204,0,0.05);
+        }
+        
+        .result-panel.flag-alert {
+            border-color: var(--red);
+            background: rgba(255,68,102,0.05);
+        }
+        
+        .rp-label {
+            font-family: 'Orbitron', monospace;
+            font-size: 10px;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            color: var(--gold);
+        }
+        
+        .flag-item {
+            font-size: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .answer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .ans-item .ans-key {
+            font-size: 9px;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .ans-item .ans-val {
+            font-size: 12px;
+            color: var(--white);
+            word-break: break-word;
+        }
+        
+        .send-panel {
+            border: 1px solid var(--border-gold);
+            border-radius: 16px;
+            padding: 25px;
+            background: rgba(255,204,0,0.03);
+            margin-top: 25px;
+            text-align: center;
+        }
+        
+        .copy-area {
+            width: 100%;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 11px;
+            padding: 12px;
+            min-height: 110px;
+            margin-bottom: 15px;
+            color: var(--white);
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        @media (max-width: 600px) {
+            .shell { padding: 0 15px 60px; }
+            .intro h1 { font-size: 22px; }
+            .health-icon { font-size: 32px; }
+            .hud-stat { padding: 8px; }
+            .hud-stat-num { font-size: 18px; }
+            .sec-title { font-size: 18px; }
+            .q-panel { padding: 14px; }
+            .btn-primary { padding: 10px 25px; font-size: 10px; }
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-  <h1>🧬 HYBRID HEALTH SYSTEM</h1>
-  <p style="text-align:center">Konsultant: Ivan Paunović</p>
-  <div style="text-align:center; margin:15px 0">🧑‍🔬 🔬 🧬 ⚡</div>
 
-  <!-- INTRO -->
-  <div id="intro">
-    <div class="section">
-      <p style="text-align:center">🔬 HIBRIDNI ZDRAVSTVENI SISTEM 🔬</p>
-      <p style="text-align:center">Stručna analiza vašeg zdravstvenog profila</p>
-      <p style="text-align:center; font-size:0.85rem;">Podaci su poverljivi i koriste se isključivo za kreiranje vašeg programa ishrane i treninga.</p>
-    </div>
-    <button id="startBtn">ZAPOČNI HIBRIDNU ANALIZU</button>
-  </div>
+<!-- CANVAS ZA ANIMACIJE (DNK, RNK, ORGANI) -->
+<canvas id="bg-canvas"></canvas>
+<div id="progress-bar"></div>
 
-  <!-- FORMA -->
-  <form id="mainForm" class="hidden">
-    <!-- M01 -->
-    <div class="section">
-      <div class="section-title">📋 M-01: Identifikacija</div>
-      <div class="question"><label>Ime i prezime</label><input type="text" id="name" placeholder="Unesite ime"></div>
-      <div class="question"><label>Email adresa (za Excel vodič)</label><input type="email" id="email" placeholder="vas@email.com"></div>
-      <div class="question"><label>Godine</label><input type="number" id="age" placeholder="28"></div>
-      <div class="question"><label>Visina (cm)</label><input type="number" id="height" placeholder="170"></div>
-      <div class="question"><label>Težina (kg)</label><input type="number" id="weight" placeholder="70"></div>
-      <div class="question"><label>Primarni cilj</label>
-        <select id="goal">
-          <option value="">Odaberite...</option>
-          <option>Gubitak masti</option><option>Mišićna masa</option><option>Zdravlje i energija</option><option>Hormonalna ravnoteža</option><option>Sportski performans</option>
-        </select>
-        <div class="extra"><input type="text" id="goalOther" placeholder="Nešto drugo..."></div>
-      </div>
+<div class="shell">
+    <div class="header-bar">
+        <div class="header-logo">HHS // HIBRIDNA ANALIZA</div>
+        <div class="header-status"><div class="status-dot"></div>LAB BUDUĆNOSTI</div>
     </div>
 
-    <!-- M02 -->
-    <div class="section">
-      <div class="section-title">🫁 M-02: Digestivni / Strukturalni</div>
-      <div class="question"><label>Tegobe sa stomakom (višestruki izbor)</label>
-        <div class="opts" id="stomakOpts">
-          <label class="opt-item"><input type="checkbox" value="Nadutost"> Nadutost</label>
-          <label class="opt-item"><input type="checkbox" value="Bol/grčevi"> Bol/grčevi</label>
-          <label class="opt-item"><input type="checkbox" value="Refluks"> Refluks/gorušica</label>
-          <label class="opt-item"><input type="checkbox" value="Dijareja"> Dijareja</label>
-          <label class="opt-item"><input type="checkbox" value="Konstipacija"> Konstipacija</label>
-          <label class="opt-item"><input type="checkbox" value="Nemam tegoba"> Nemam tegoba</label>
+    <div id="page-intro">
+        <div class="intro">
+            <div class="intro-eyebrow">🔬 HIBRIDNI ZDRAVSTVENI SISTEM</div>
+            <h1>HYBRID HEALTH SYSTEM</h1>
+            <div class="intro-name">Konsultant: <span>Ivan Paunović</span></div>
+            <div class="health-icons"><div class="health-icon">🧬</div><div class="health-icon">🔬</div><div class="health-icon">🖥️</div><div class="health-icon">⚡</div></div>
+            <div class="hud-stats"><div class="hud-stat"><span class="hud-stat-num">7</span><span class="hud-stat-label">Modula</span></div><div class="hud-stat"><span class="hud-stat-num">50+</span><span class="hud-stat-label">Parametara</span></div><div class="hud-stat"><span class="hud-stat-num">HIBRID</span><span class="hud-stat-label">Analiza</span></div></div>
+            <div class="pillars"><div class="pillar">🫁 Digestivni</div><div class="pillar">🦴 Strukturalni</div><div class="pillar">🧠 Neurološki</div><div class="pillar">⚗️ Endokrini</div><div class="pillar">⚡ Trening</div><div class="pillar">🍽️ Ishrana</div><div class="pillar">🔬 Laboratorija</div></div>
+            <div class="disclaimer-box">🧪 HIBRIDNA ANALIZA • PODACI SE OBRAĐUJU U FUTURISTIČKOM LABORATORIJU • STROGO POVERLJIVO</div>
+            <button class="btn-primary" onclick="showForm()"><span>▶</span> ZAPOČNI ANALIZU</button>
         </div>
-        <div class="extra"><input type="text" id="stomakOther" placeholder="Ostalo / detalji..."></div>
-      </div>
-      <div class="question"><label>Pospanost posle obroka?</label>
-        <select id="postMealSleep">
-          <option value="">Odaberite...</option><option>Uvek</option><option>Često</option><option>Ponekad</option><option>Retko/nikad</option>
-        </select>
-        <div class="extra"><input type="text" id="postMealSleepDetail" placeholder="Kada se javlja? Posle kog obroka?"></div>
-      </div>
-      <div class="question"><label>Reakcije na hranu</label>
-        <div class="opts" id="reactionOpts">
-          <label class="opt-item"><input type="checkbox" value="Mlečni"> Mlečni proizvodi</label>
-          <label class="opt-item"><input type="checkbox" value="Gluten"> Gluten/pšenica</label>
-          <label class="opt-item"><input type="checkbox" value="Mahunarke"> Mahunarke/FODMAP</label>
-          <label class="opt-item"><input type="checkbox" value="Ne primećujem"> Ne primećujem</label>
-        </div>
-        <div class="extra"><input type="text" id="reactionOther" placeholder="Ostalo..."></div>
-      </div>
-      <div class="question"><label>Bolovi u kičmi ili telu</label>
-        <select id="pain">
-          <option value="">Odaberite...</option><option>Nemam</option><option>Donji deo leđa</option><option>Vrat/ramena</option><option>Stalni bol (više zona)</option>
-        </select>
-        <div class="extra"><input type="text" id="painDetail" placeholder="Opiši gde i kakav bol"></div>
-      </div>
-      <div class="question"><label>Učestalost glavobolja (1-10)</label><input type="range" min="1" max="10" id="headache" value="1"><span id="headacheVal">1</span></div>
-      <div class="question"><label>Tip glavobolje</label><input type="text" id="headacheType" placeholder="Npr. migrena, tenziona"></div>
-      <div class="question"><label>Bruksizam (škrgutanje zubima)</label>
-        <select id="bruxism">
-          <option value="">Odaberite...</option><option>Ne</option><option>Ponekad</option><option>Da, redovno</option>
-        </select>
-      </div>
     </div>
 
-    <!-- M03 -->
-    <div class="section">
-      <div class="section-title">⚗️ M-03: Endokrini / Sistemski</div>
-      <div class="question"><label>Opadanje kose (1-10)</label><input type="range" min="1" max="10" id="hairLoss" value="1"><span id="hairLossVal">1</span></div>
-      <div class="question"><label>Detalji o opadanju kose</label><input type="text" id="hairLossDetail" placeholder="Od kada, gde..."></div>
-      <div class="question"><label>Koža i akne</label>
-        <div class="opts" id="skinOpts">
-          <label class="opt-item"><input type="checkbox" value="Suva koža"> Suva koža</label>
-          <label class="opt-item"><input type="checkbox" value="Masna koža"> Masna koža</label>
-          <label class="opt-item"><input type="checkbox" value="Akne lice"> Akne lice</label>
-          <label class="opt-item"><input type="checkbox" value="Normalna"> Normalna</label>
-        </div>
-        <div class="extra"><input type="text" id="skinDetail" placeholder="Opiši detaljno"></div>
-      </div>
-      <div class="question"><label>Termoregulacija (hladnoća/toplota)</label>
-        <select id="thermo">
-          <option value="">Odaberite...</option><option>Normalna</option><option>Stalno mi je hladno</option><option>Stalno mi je vruće</option><option>Pojačano znojenje</option><option>Hladni ekstremiteti (šake/stopala)</option>
-        </select>
-        <div class="extra"><input type="text" id="coldExtremities" placeholder="Hladne ruke/stopala? Opiši"></div>
-      </div>
-      <div class="question"><label>Menstrualni ciklus</label>
-        <select id="menstrual">
-          <option value="">Odaberite...</option><option>Regularan</option><option>Neredovan</option><option>Bolan</option><option>PMS simptomi</option><option>Nema ciklusa</option><option>Nije primenjivo</option>
-        </select>
-      </div>
-      <div class="question"><label>Kada je energija najniža?</label>
-        <select id="energyLow">
-          <option value="">Odaberite...</option><option>Ujutru</option><option>Pre podne</option><option>Posle podne</option><option>Konstantno niska</option>
-        </select>
-      </div>
-      <div class="question"><label>Postavljene dijagnoze</label>
-        <div class="opts" id="diagOpts">
-          <label class="opt-item"><input type="checkbox" value="Insulinska rezistencija"> Insulinska rezistencija</label>
-          <label class="opt-item"><input type="checkbox" value="PCOS"> PCOS</label>
-          <label class="opt-item"><input type="checkbox" value="Hipotireoza"> Hipotireoza/Hašimoto</label>
-          <label class="opt-item"><input type="checkbox" value="Dijabetes tip 2"> Dijabetes tip 2</label>
-        </div>
-        <div class="extra"><input type="text" id="diagOther" placeholder="Ostale dijagnoze"></div>
-        <div class="extra"><label>💊 Terapija za insulin/šećer:</label><input type="text" id="insulinTherapy" placeholder="Npr. Metformin"></div>
-        <div class="extra"><label>💊 Terapija za štitnu žlezdu:</label><input type="text" id="thyroidTherapy" placeholder="Npr. Euthyrox"></div>
-      </div>
-      <div class="question"><label>Poznati nutritivni deficiti</label>
-        <div class="opts" id="deficitOpts">
-          <label class="opt-item"><input type="checkbox" value="Vitamin D"> Vitamin D</label>
-          <label class="opt-item"><input type="checkbox" value="Gvožđe"> Gvožđe/Feritin</label>
-          <label class="opt-item"><input type="checkbox" value="B12"> B12</label>
-          <label class="opt-item"><input type="checkbox" value="Magnezijum"> Magnezijum</label>
-          <label class="opt-item"><input type="checkbox" value="Ne znam"> Ne znam</label>
-        </div>
-      </div>
+    <div id="page-form" class="hidden">
+        <form id="main-form">
+            <!-- M01: IDENTIFIKACIJA -->
+            <div class="section-header"><div class="sec-line"></div><div><div class="sec-tag">M-01</div><div class="sec-title">📋 Identifikacija</div></div><div class="sec-line-r"></div></div>
+            <div class="q-block"><div class="q-panel"><label class="q-label">👤 Ime i prezime</label><input type="text" id="name" placeholder="Unesite ime i prezime"></div></div>
+            <div class="q-block"><div class="q-panel"><label class="q-label">📧 Email adresa <span class="q-sub">Da vam pošaljem Excel vodič</span></label><input type="email" id="email" placeholder="vas@email.com"></div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+                <div class="q-block"><div class="q-panel"><label class="q-label">📅 Godine</label><input type="number" id="age" placeholder="28"></div></div>
+                <div class="q-block"><div class="q-panel"><label class="q-label">📏 Visina (cm)</label><input type="number" id="height" placeholder="170"></div></div>
+                <div class="q-block"><div class="q-panel"><label class="q-label">⚖️ Težina (kg)</label><input type="number" id="weight" placeholder="70"></div></div>
+            </div>
+            <div class="q-block"><div class="q-panel"><label class="q-label">🎯 Primarni cilj</label>
+                <div class="opts"><label class="opt-item"><input type="radio" name="cilj" value="Gubitak masti"><div class="opt-dot"></div><span class="opt-text">Gubitak masti</span></label><label class="opt-item"><input type="radio" name="cilj" value="Mišićna masa"><div class="opt-dot"></div><span class="opt-text">Mišićna masa</span></label><label class="opt-item"><input type="radio" name="cilj" value="Zdravlje i energija"><div class="opt-dot"></div><span class="opt-text">Zdravlje i energija</span></label><label class="opt-item"><input type="radio" name="cilj" value="Hormonalna ravnoteža"><div class="opt-dot"></div><span class="opt-text">Hormonalna ravnoteža</span></label><label class="opt-item"><input type="radio" name="cilj" value="Sportski performans"><div class="opt-dot"></div><span class="opt-text">Sportski performans</span></label></div>
+                <div class="extra-wrap"><input type="text" id="cilj-ostalo" placeholder="Nešto drugo..."></div>
+            </div></div>
+
+            <!-- M02: DIGESTIVNI / STRUKTURALNI -->
+            <div class="section-header"><div class="sec-line"></div><div><div class="sec-tag">M-02</div><div class="sec-title">🫁 Digestivni / Strukturalni</div></div><div class="sec-line-r"></div></div>
+            <div class="q-block"><div class="q-panel" onmouseenter="showHolo('🫁')" onmouseleave="showHolo('🧬')">
+                <label class="q-label">🩺 Tegobe sa stomakom</label>
+                <div class="opts"><label class="opt-item"><input type="checkbox" name="tegobe-stomak" value="Nadutost"><div class="opt-box"></div><span class="opt-text">Nadutost</span></label><label class="opt-item"><input type="checkbox" name="tegobe-stomak" value="Bol/grčevi"><div class="opt-box"></div><span class="opt-text">Bol/grčevi</span></label><label class="opt-item"><input type="checkbox" name="tegobe-stomak" value="Refluks"><div class="opt-box"></div><span class="opt-text">Refluks/gorušica</span></label><label class="opt-item"><input type="checkbox" name="tegobe-stomak" value="Dijareja"><div class="opt-box"></div><span class="opt-text">Dijareja</span></label><label class="opt-item"><input type="checkbox" name="tegobe-stomak" value="Konstipacija"><div class="opt-box"></div><span class="opt-text">Konstipacija</span></label><label class="opt-item"><input type="checkbox" name="tegobe-stomak" value="Mučnina"><div class="opt-box"></div><span class="opt-text">Mučnina</span></label><label class="opt-item"><input type="checkbox" name="tegobe-stomak" value="Nemam tegoba"><div class="opt-box"></div><span class="opt-text">Nemam tegoba</span></label></div>
+                <div class="extra-wrap"><input type="text" id="tegobe-ostalo" placeholder="Ostalo / detalji..."></div>
+            </div></div>
+
+            <div class="q-block"><div class="q-panel"><label class="q-label">😴 Pospanost posle obroka?</label>
+                <div class="opts"><label class="opt-item"><input type="radio" name="pospanost" value="Uvek"><div class="opt-dot"></div><span class="opt-text">Uvek</span></label><label class="opt-item"><input type="radio" name="pospanost" value="Često"><div class="opt-dot"></div><span class="opt-text">Često</span></label><label class="opt-item"><input type="radio" name="pospanost" value="Ponekad"><div class="opt-dot"></div><span class="opt-text">Ponekad</span></label><label class="opt-item"><input type="radio" name="pospanost" value="Retko/nikad"><div class="opt-dot"></div><span class="opt-text">Retko/nikad</span></label></div>
+                <div class="extra-wrap"><input type="text" id="pospanost-detalji" placeholder="Kada se javlja? Posle kog obroka?"></div>
+            </div></div>
+
+            <div class="q-block"><div class="q-panel"><label class="q-label">🍽️ Reakcije na određenu hranu?</label>
+                <div class="opts"><label class="opt-item"><input type="checkbox" name="reakcije" value="Mlečni proizvodi"><div class="opt-box"></div><span class="opt-text">Mlečni proizvodi</span></label><label class="opt-item"><input type="checkbox" name="reakcije" value="Gluten"><div class="opt-box"></div><span class="opt-text">Gluten/pšenica</span></label><label class="opt-item"><input type="checkbox" name="reakcije" value="Mahunarke"><div class="opt-box"></div><span class="opt-text">Mahunarke/FODMAP</span></label><label class="opt-item"><input type="checkbox" name="reakcije" value="Jaja"><div class="opt-box"></div><span class="opt-text">Jaja</span></label><label class="opt-item"><input type="checkbox" name="reakcije" value="Ne primećujem"><div class="opt-box"></div><span class="opt-text">Ne primećujem</span></label></div>
+                <div class="extra-wrap"><input type="text" id="reakcije-ostalo" placeholder="Ostalo..."></div>
+            </div></div>
+
+            <div class="q-block"><div class="q-panel"><label class="q-label">🦴 Bolovi u kičmi ili telu</label>
+                <div class="opts"><label class="opt-item"><input type="radio" name="bolovi" value="Nemam"><div class="opt-dot"></div><span class="opt-text">Nemam</span></label><label class="opt-item"><input type="radio" name="bolovi" value="Donji deo leđa"><div class="opt-dot"></div><span class="opt-text">Donji deo leđa</span></label><label class="opt-item"><input type="radio" name="bolovi" value="Vrat/ramena"><div class="opt-dot"></div><span class="opt-text">Vrat/ramena</span></label><label class="opt-item"><input type="radio" name="bolovi" value="Stalni bol"><div class="opt-dot"></div><span class="opt-text">Stalni bol</span></label></div>
+                <div class="extra-wrap"><input type="text" id="bolovi-detalji" placeholder="Opiši gde i kakav bol"></div>
+            </div></div>
+
+            <div class="q-block"><div class="q-panel" onmouseenter="showHolo('🧠')" onmouseleave="showHolo('🧬')">
+                <label class="q-label">🤕 Učestalost glavobolja <span class="q-sub">1 = nikad, 10 = svaki dan</span></label>
+                <div class="scale-grid-10" id="scale-headache"></div>
+                <input type="hidden" id="headache" value="1">
+                <div class="extra-wrap"><input type="text" id="glavobolje-tip" placeholder="Tip glavobolje (tenziona, migrena...)"></div>
+            </div></div>
+
+            <div class="q-block"><div class="q-panel"><label class="q-label">🦷 Bruksizam (škrgutanje zubima)?</label>
+                <div class="opts"><label class="opt-item"><input type="radio" name="bruksizam" value="Ne"><div class="opt-dot"></div><span class="opt-text">Ne</span></label><label class="opt-item"><input type="radio" name="bruksizam" value="Ponekad"><div class="opt-dot"></div><span class="opt-text">Ponekad</span></label><label class="opt-item"><input type="radio" name="bruksizam" value="Redovno"><div class="opt-dot"></div><span class="opt-text">Redovno</span></label></div>
+                <div class="extra-wrap"><input type="text" id="bruksizam-napomena" placeholder="Napomena"></div>
+            </div></div>
+
+            <!-- M03: ENDOKRINI / SISTEMSKI -->
+            <div class="section-header"><div class="sec-line"></div><div><div class="sec-tag">M-03</div><div class="sec-title">⚗️ Endokrini / Sistemski</div></div><div class="sec-line-r"></div></div>
+            <div class="q-block"><div class="q-panel" onmouseenter="showHolo('💇')" onmouseleave="showHolo('🧬')">
+                <label class="q-label">💇 Intenzitet opadanja kose <span class="q-sub">1 = nimalo, 10 = intenzivno</span></label>
+                <div class="scale-grid-10" id="scale-hairloss"></div>
+                <input type="hidden" id="hairloss" value="1">
+                <div class="extra-wrap"><input type="text" id="opadanje-detalji" placeholder="Detalji (od kada, gde...)"></div>
+            </div></div>
+
+            <div class="q-block"><div class="q-panel"><label class="q-label">🧴 Koža i akne</label>
+                <div class="opts"><label class="opt-item"><input type="checkbox" name="koza" value="Suva koža"><div class="opt-box"></div><span class="opt-text">Suva koža</span></label><label class="opt-item"><input type="checkbox" name="koza" value="Masna koža"><div class="opt-box"></div><span class="opt-text">Masna koža</span></label><label class="opt-item"><input type="checkbox" name="koza" value="Akne"><div class="opt-box"></div><span class="opt-text">Akne</span></label><label class="opt-item"><input type="checkbox" name="koza" value="Normalna"><div class="opt-box"></div><span class="opt-text">Normalna</span></label></div>
+                <div class="extra-wrap"><input type="text" id="koza-detalji" placeholder="Opiši detaljno"></div>
+            </div></div>
+
+            <div class="q-block"><div class="q-panel"><label class="q-label">🌡️ Termoregulacija</label>
+                <div class="opts"><label class="opt-item"><input type="radio" name="termo" value="Normalna"><div class="opt-dot"></div><span class="opt-text">Normalna</span></label><label class="opt-item"><input type="radio" name="termo" value="Stalno hladno"><div class="opt-dot"></div><span class="opt-text">Stalno hladno</span></label><label class="opt-item"><input type="radio" name="termo" value="Stalno vruće"><div class="opt-dot"></div><span class="opt-text">Stalno vruće</span></label><label class="opt-item"><input type="radio" name="termo" value="Pojačano znojenje"><div class="opt-dot"></div><span class="opt-text">Pojačano znojenje</span></label><label class="opt-item"><input type="radio" name="termo" value="Hladni ekstremiteti"><div class="opt-dot"></div><span class="opt-text">Hladni ekstremiteti</span></label></div>
+                <div class="extra-wrap"><label class="extra-label">🖐️ Hladne ruke ili stopala?</label><input type="text" id="hladni-ekstremiteti" placeholder="Opiši..."></div>
+                <div class="extra-wrap"><input type="text" id="termo-napomena" placeholder="Napomena"></div>
+            </div></div>
+
+            <div class="q-block"><div class="q-panel"><label class="q-label">🩸 Menstrualni ciklus</label>
+                <div class="opts"><label class="opt-item"><input type="radio" name="menstrual" value="Regularan"><div class="opt-dot"></div><span class="opt-text">Regularan</span></label><label class="opt-item"><input type="radio" name="menstrual" value="Neredovan"><div class="opt-dot"></div><span class="opt-text">Neredovan</span></label><label class="opt-item"><input type="radio" name="menstrual" value="Bolan"><div class="opt-dot"></div><span class="opt-text">Bolan</span></label><label class="opt-item"><input type="radio" name="menstrual" value="Nije primenjivo"><div class="opt-dot"></div><span class="opt-text">Nije primenjivo</span></label></div>
+                <div class="extra-wrap"><input type="text" id="menstrual-detalji" placeholder="Detalji"></div>
+            </div></div>
+
+            <div class="q-block"><div class="q-panel"><label class="q-label">⚡ Kada je energija najniža?</label>
+                <div class="opts"><label class="opt-item"><input type="radio" name="energija" value="Ujutru"><div class="opt-dot"></div><span class="opt-text">Ujutru</span></label><label class="opt-item"><input type="radio" name="energija" value="Pre podne"><div class="opt-dot"></div><span class="opt-text">Pre podne</span></label><label class="opt-item"><input type="radio" name="energija" value="Posle podne"><div class="opt-dot"></div><span class="opt-text">Posle podne</span></label><label class="opt-item"><input type="radio" name="energija" value="Konstantno"><div class="opt-dot"></div><span class="opt-text">Konstantno niska</span></label></div>
+                <div class="extra-wrap"><input type="text" id="energija-napomena" placeholder="Napomena"></div>
+            </div></div>
+
+            <div class="q-block"><div class="q-panel" onmouseenter="showHolo('🦋')" onmouseleave="showHolo('🧬')">
+                <label class="q-label">📋 Postavljene dijagnoze</label>
+                <div class="opts"><label class="opt-item"><input type="checkbox" name="dijagnoze" value="Insulinska rezistencija"><div class="opt-box"></div><span class="opt-text">Insulinska rezistencija</span></label><label class="opt-item"><input type="checkbox" name="dijagnoze" value="PCOS"><div class="opt-box"></div><span class="opt-text">PCOS</span></label><label class="opt-item"><input type="checkbox" name="dijagnoze" value="Hipotireoza"><div class="opt-box"></div><span class="opt-text">Hipotireoza/Hašimoto</span></label><label class="opt-item"><input type="checkbox" name="dijagnoze" value="Dijabetes"><div class="opt-box"></div><span class="opt-text">Dijabetes tip 2</span></label><label class="opt-item"><input type="checkbox" name="dijagnoze" value="Ništa"><div class="opt-box"></div><span class="opt-text">Ništa od navedenog</span></label></div>
+                <div class="extra-wrap"><input type="text" id="dijagnoze-ostalo" placeholder="Ostale dijagnoze"></div>
+                <div class="extra-wrap"><label class="extra-label">💊 Terapija za insulin/šećer:</label><input type="text" id="insulin-terapija" placeholder="Npr. Metformin"></div>
+                <div class="extra-wrap"><label class="extra-label">💊 Terapija za štitnu žlezdu:</label><input type="text" id="thyroid-terapija" placeholder="Npr. Euthyrox"></div>
+            </div></div>
+
+            <div class="q-block"><div class="q-panel"><label class="q-label">🥗 Poznati nutritivni deficiti</label>
+                <div class="opts"><label class="opt-item"><input type="checkbox" name="deficiti" value="Vitamin D"><div class="opt-box"></div><span class="opt-text">Vitamin D</span></label><label class="opt-item"><input type="checkbox" name="deficiti" value="Gvožđe"><div class="opt-box"></div><span class="opt-text">Gvožđe/Feritin</span></label><label class="opt-item"><input type="checkbox" name="deficiti" value="B12"><div class="opt-box"></div><span class="opt-text">B12</span></label><label class="opt-item"><input type="checkbox" name="deficiti" value="Magnezijum"><div class="opt-box"></div><span class="opt-text">Magnezijum</span></label><label class="opt-item"><input type="checkbox" name="deficiti" value="Ne znam"><div class="opt-box"></div><span class="opt-text">Ne znam</span></label></div>
+                <div class="extra-wrap"><input type="text" id="deficiti-ostalo" placeholder="Vrednosti"></div>
+            </div></div>
+
+            <!-- M04: SAN / STRES -->
+            <div class="section-header"><div class="sec-line"></div><div><div class="sec-tag">M-04</div><div class="sec-title">😴 San / Stres</div></div><div class="sec-line-r"></div></div>
+            <div class="q-block"><div class="q-panel"><label class="q-label">⏰ Prosečno trajanje sna</label>
+                <div class="opts"><label class="opt-item"><input type="radio" name="san-sati" value="<5h"><div class="opt-dot"></div><span class="opt-text">Manje od 5h</span></label><label class="opt-item"><input type="radio" name="san-sati" value="5-6h"><div class="opt-dot"></div><span class="opt-text">5-6h</span></label><label class="opt-item"><input type="radio" name="san-sati" value="6-7h"><div class="opt-dot"></div><span class="opt-text">6-7h</span></label><label class="opt-item"><input type="radio" name="san-sati" value="7-8h"><div class="opt-dot"></div><span class="opt-text">7-8h</span></label></div>
+                <div class="extra-wrap"><input type="text" id="san-napomena" placeholder="Napomena"></div>
+            </div></div>
+
+            <div class="q-block"><div class="q-panel"><label class="q-label">⭐ Kvalitet sna <span class="q-sub">1 = katastrofalan, 10 = odličan</span></label>
+                <div class="scale-grid-10" id="scale-sleepq"></div>
+                <input type="hidden" id="sleepq" value="5">
+            </div></div>
+
+            <div class="q-block"><div class="q-panel"><label class="q-label">🛌 Kada ideš na spavanje?</label>
+                <div class="opts"><label class="opt-item"><input type="radio" name="bedtime" value="Pre 22h"><div class="opt-dot"></div><span class="opt-text">Pre 22h</span></label><label class="opt-item"><input type="radio" name="bedtime" value="22-23h"><div class="opt-dot"></div><span class="opt-text">22-23h</span></label><label class="opt-item"><input type="radio" name="bedtime" value="23-01h"><div class="opt-dot"></div><span class="opt-text">23-01h</span></label><label class="opt-item"><input type="radio" name="bedtime" value="Posle 01h"><div class="opt-dot"></div><span class="opt-text">Posle 01h</span></label></div>
+            </div></div>
+
+            <div class="q-block"><div class="q-panel" onmouseenter="showHolo('🧠')" onmouseleave="showHolo('🧬')">
+                <label class="q-label">😰 Nivo stresa <span class="q-sub">1 = minimalan, 10 = maksimalan</span></label>
+                <div class="scale-grid-10" id="scale-stress"></div>
+                <input type="hidden" id="stress" value="5">
+                <div class="extra-wrap"><input type="text" id="stres-izvor" placeholder="Izvor stresa"></div>
+            </div></div>
+
+            <div class="q-block"><div class="q-panel"><label class="q-label">💊 Suplementacija i lekovi</label>
+                <div class="opts"><label class="opt-item"><input type="checkbox" name="suplementi" value="D3"><div class="opt-box"></div><span class="opt-text">Vitamin D3</span></label><label class="opt-item"><input type="checkbox" name="suplementi" value="B12"><div class="opt-box"></div><span class="opt-text">B12</span></label><label class="opt-item"><input type="checkbox" name="suplementi" value="Magnezijum"><div class="opt-box"></div><span class="opt-text">Magnezijum</span></label><label class="opt-item"><input type="checkbox" name="suplementi" value="Omega-3"><div class="opt-box"></div><span class="opt-text">Omega-3</span></label><label class="opt-item"><input type="checkbox" name="suplementi" value="Ništa"><div class="opt-box"></div><span class="opt-text">Ništa</span></label></div>
+                <div class="extra-wrap"><input type="text" id="suplementi-ostalo" placeholder="Ostalo"></div>
+            </div></div>
+
+            <!-- M05: ISHRANA -->
+            <div class="section-header"><div class="sec-line"></div><div><div class="sec-tag">M-05</div><div class="sec-title">🍽️ Ishrana</div></div><div class="sec-line-r"></div></div>
+            <div class="q-block"><div class="q-panel"><label class="q-label">🍎 Omiljene namirnice</label><textarea id="fav_foods" rows="2" placeholder="3-5 namirnica..."></textarea></div></div>
+            <div class="q-block"><div class="q-panel"><label class="q-label">🍲 Omiljena hrana/obrok</label><textarea id="fav_meal" rows="2" placeholder="Omiljeno jelo..."></textarea></div></div>
+            <div class="q-block"><div class="q-panel"><label class="q-label">📝 Opiši tvoj juče</label><textarea id="yesterday" rows="3" placeholder="Šta si jeo/la, radio/la..."></textarea></div></div>
+            <div class="q-block"><div class="q-panel"><label class="q-label">💼 Zanimanje/posao</label><textarea id="occupation" rows="2" placeholder="Priroda posla..."></textarea></div></div>
+
+            <!-- M06: TRENING -->
+            <div class="section-header"><div class="sec-line"></div><div><div class="sec-tag">M-06</div><div class="sec-title">🏋️ Trening i pokret</div></div><div class="sec-line-r"></div></div>
+            <div class="q-block"><div class="q-panel"><label class="q-label">📊 Iskustvo u treningu</label>
+                <div class="opts"><label class="opt-item"><input type="radio" name="iskustvo" value="Početnik"><div class="opt-dot"></div><span class="opt-text">Početnik</span></label><label class="opt-item"><input type="radio" name="iskustvo" value="Srednji nivo"><div class="opt-dot"></div><span class="opt-text">Srednji nivo</span></label><label class="opt-item"><input type="radio" name="iskustvo" value="Napredan"><div class="opt-dot"></div><span class="opt-text">Napredan</span></label></div>
+                <div class="extra-wrap"><input type="text" id="iskustvo-detalji" placeholder="Detalji"></div>
+            </div></div>
+
+            <div class="q-block"><div class="q-panel"><label class="q-label">🏃 Tip treninga</label>
+                <div class="opts"><label class="opt-item"><input type="checkbox" name="tip-treninga" value="Tegovi"><div class="opt-box"></div><span class="opt-text">Tegovi</span></label><label class="opt-item"><input type="checkbox" name="tip-treninga" value="Kardio"><div class="opt-box"></div><span class="opt-text">Kardio</span></label><label class="opt-item"><input type="checkbox" name="tip-treninga" value="HIIT"><div class="opt-box"></div><span class="opt-text">HIIT</span></label><label class="opt-item"><input type="checkbox" name="tip-treninga" value="Joga"><div class="opt-box"></div><span class="opt-text">Joga</span></label><label class="opt-item"><input type="checkbox" name="tip-treninga" value="Ne treniram"><div class="opt-box"></div><span class="opt-text">Ne treniram</span></label></div>
+                <div class="extra-wrap"><input type="text" id="trening-detalji" placeholder="Navedi sport/aktivnost (plivanje, borilački, trčanje...)"></div>
+                <div class="extra-wrap"><input type="text" id="trening-ostalo" placeholder="Ostalo"></div>
+            </div></div>
+
+            <div class="q-block"><div class="q-panel"><label class="q-label">📅 Frekvencija treninga</label>
+                <div class="opts"><label class="opt-item"><input type="radio" name="frekvencija" value="Ne treniram"><div class="opt-dot"></div><span class="opt-text">Ne treniram</span></label><label class="opt-item"><input type="radio" name="frekvencija" value="1-2x"><div class="opt-dot"></div><span class="opt-text">1-2x nedeljno</span></label><label class="opt-item"><input type="radio" name="frekvencija" value="3-4x"><div class="opt-dot"></div><span class="opt-text">3-4x nedeljno</span></label><label class="opt-item"><input type="radio" name="frekvencija" value="5-6x"><div class="opt-dot"></div><span class="opt-text">5-6x nedeljno</span></label></div>
+            </div></div>
+
+            <div class="q-block"><div class="q-panel"><label class="q-label">💪 Oporavak 24-48h posle treninga?</label>
+                <div class="opts"><label class="opt-item"><input type="radio" name="oporavak" value="Odlično"><div class="opt-dot"></div><span class="opt-text">Odlično</span></label><label class="opt-item"><input type="radio" name="oporavak" value="OK"><div class="opt-dot"></div><span class="opt-text">OK</span></label><label class="opt-item"><input type="radio" name="oporavak" value="Umoran"><div class="opt-dot"></div><span class="opt-text">Umoran</span></label><label class="opt-item"><input type="radio" name="oporavak" value="Iscrpljen"><div class="opt-dot"></div><span class="opt-text">Iscrpljen danima</span></label></div>
+                <div class="extra-wrap"><input type="text" id="oporavak-napomena" placeholder="Napomena"></div>
+            </div></div>
+
+            <div class="q-block"><div class="q-panel"><label class="q-label">📉 Pad performansi?</label>
+                <div class="opts"><label class="opt-item"><input type="radio" name="performans" value="Ne"><div class="opt-dot"></div><span class="opt-text">Ne, napredujem</span></label><label class="opt-item"><input type="radio" name="performans" value="Stagniram"><div class="opt-dot"></div><span class="opt-text">Stagniram</span></label><label class="opt-item"><input type="radio" name="performans" value="Pad"><div class="opt-dot"></div><span class="opt-text">Primetan pad</span></label></div>
+            </div></div>
+
+            <div class="q-block"><div class="q-panel"><label class="q-label">🩹 Aktivne povrede / hronični bolovi</label><input type="text" id="injuries" placeholder="Npr. bol u kolenu"></div></div>
+
+            <div class="q-block"><div class="q-panel"><label class="q-label">🏋️ Dostupna oprema</label>
+                <div class="opts"><label class="opt-item"><input type="checkbox" name="oprema" value="Teretana"><div class="opt-box"></div><span class="opt-text">Teretana</span></label><label class="opt-item"><input type="checkbox" name="oprema" value="Kućni trening"><div class="opt-box"></div><span class="opt-text">Kućni trening</span></label><label class="opt-item"><input type="checkbox" name="oprema" value="Ništa"><div class="opt-box"></div><span class="opt-text">Ništa</span></label></div>
+                <div class="extra-wrap"><input type="text" id="oprema-detalji" placeholder="Koja oprema tačno?"></div>
+            </div></div>
+
+            <!-- M07: LABORATORIJA -->
+            <div class="section-header"><div class="sec-line"></div><div><div class="sec-tag">M-07</div><div class="sec-title">🔬 Laboratorija</div></div><div class="sec-line-r"></div></div>
+            <div class="q-block"><div class="q-panel"><label class="q-label">📄 Laboratorijski nalazi</label>
+                <div class="upload-zone" id="upload-zone" onclick="document.getElementById('lab-files').click()">
+                    <input type="file" id="lab-files" accept="image/*,.pdf" multiple onchange="handleUpload(this)" style="display:none">
+                    <div class="upload-icon">🔬</div>
+                    <div class="upload-text"><strong>TAPNI DA DODAŠ NALAZ</strong><br>JPG · PNG · PDF</div>
+                    <div class="upload-previews" id="upload-previews"></div>
+                </div>
+            </div></div>
+
+            <div class="q-block"><div class="q-panel"><label class="q-label">📋 Status laboratorijskih nalaza</label>
+                <div class="opts"><label class="opt-item"><input type="radio" name="status-nalaza" value="Imam"><div class="opt-dot"></div><span class="opt-text">Imam (priložio/la sam)</span></label><label class="opt-item"><input type="radio" name="status-nalaza" value="Stari"><div class="opt-dot"></div><span class="opt-text">Imam ali starije od 6 meseci</span></label><label class="opt-item"><input type="radio" name="status-nalaza" value="Nemam"><div class="opt-dot"></div><span class="opt-text">Nemam</span></label></div>
+                <div class="extra-wrap"><input type="text" id="nalaz-vrednosti" placeholder="Ključne vrednosti koje znaš..."></div>
+            </div></div>
+
+            <div class="q-block"><div class="q-panel"><label class="q-label">📝 Napomena / Ostalo</label><textarea id="notes" rows="2" placeholder="Bilo šta važno..."></textarea></div></div>
+
+            <div class="btn-row"><button type="button" class="btn-primary" onclick="submitForm()"><span>▶▶</span> ZAPOČNI HIBRIDNU ANALIZU</button></div>
+        </form>
     </div>
 
-    <!-- M04 -->
-    <div class="section">
-      <div class="section-title">😴 M-04: San / Stres</div>
-      <div class="question"><label>Prosečno trajanje sna</label>
-        <select id="sleepHours">
-          <option value="">Odaberite...</option><option><5h</option><option>5-6h</option><option>6-7h</option><option>7-8h</option><option>>9h</option>
-        </select>
-      </div>
-      <div class="question"><label>Kvalitet sna (1-10)</label><input type="range" min="1" max="10" id="sleepQuality" value="5"><span id="sleepQualityVal">5</span></div>
-      <div class="question"><label>Kada ideš na spavanje?</label>
-        <select id="bedtime">
-          <option value="">Odaberite...</option><option>Pre 22h</option><option>22-23h</option><option>23-01h</option><option>Posle 01h</option>
-        </select>
-      </div>
-      <div class="question"><label>Nivo stresa (1-10)</label><input type="range" min="1" max="10" id="stressLevel" value="5"><span id="stressVal">5</span></div>
-      <div class="question"><label>Izvor stresa</label><input type="text" id="stressSource" placeholder="Posao, porodica, zdravlje..."></div>
-      <div class="question"><label>Suplementacija i lekovi</label>
-        <div class="opts" id="supplOpts">
-          <label class="opt-item"><input type="checkbox" value="Vitamin D3"> Vitamin D3</label>
-          <label class="opt-item"><input type="checkbox" value="Magnezijum"> Magnezijum</label>
-          <label class="opt-item"><input type="checkbox" value="Omega-3"> Omega-3</label>
-          <label class="opt-item"><input type="checkbox" value="Ništa"> Ništa</label>
-        </div>
-        <div class="extra"><input type="text" id="supplOther" placeholder="Ostali suplementi/lekovi"></div>
-      </div>
+    <div id="page-results" class="hidden">
+        <div class="results-header"><div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--gold);">🔬 HIBRIDNA ANALIZA // IVAN PAUNOVIĆ</div><h2 id="res-name">📊 ANALIZA PRIMLJENA</h2><p>📧 Excel vodič za ishranu i trening stiže na vaš email.</p></div>
+        <div id="res-flags"></div>
+        <div class="result-panel"><div class="rp-label">📋 PREGLED ODGOVORA</div><div class="answer-grid" id="res-answers"></div></div>
+        <div class="send-panel"><p>📧 EXCEL VODIČ STIŽE NA VAŠU EMAIL ADRESU</p><textarea class="copy-area" id="copy-text" readonly></textarea><button class="btn-primary" onclick="copyAnswers()"><span>📋</span> KOPIRAJ ODGOVORE</button></div>
     </div>
-
-    <!-- M05 -->
-    <div class="section">
-      <div class="section-title">🍽️ M-05: Ishrana</div>
-      <div class="question"><label>Omiljene namirnice</label><textarea id="favFoods" rows="2" placeholder="Npr. piletina, jaja, banana..."></textarea></div>
-      <div class="question"><label>Omiljena hrana/obrok</label><textarea id="favMeal" rows="2" placeholder="Omiljeno jelo..."></textarea></div>
-      <div class="question"><label>Opiši tvoj juče</label><textarea id="yesterdayDesc" rows="3" placeholder="Šta si jeo/la, radio/la..."></textarea></div>
-      <div class="question"><label>Zanimanje / priroda posla</label><textarea id="jobDesc" rows="2" placeholder="Kancelarija, fizički rad, smene..."></textarea></div>
-    </div>
-
-    <!-- M06 -->
-    <div class="section">
-      <div class="section-title">🏋️ M-06: Trening i pokret</div>
-      <div class="question"><label>Iskustvo u treningu</label>
-        <select id="trainingExp">
-          <option value="">Odaberite...</option><option>Početnik</option><option>Srednji nivo</option><option>Napredan</option>
-        </select>
-      </div>
-      <div class="question"><label>Tip treninga</label>
-        <div class="opts" id="trainingTypeOpts">
-          <label class="opt-item"><input type="checkbox" value="Tegovi"> Tegovi</label>
-          <label class="opt-item"><input type="checkbox" value="Kardio"> Kardio</label>
-          <label class="opt-item"><input type="checkbox" value="HIIT"> HIIT</label>
-          <label class="opt-item"><input type="checkbox" value="Joga"> Joga/Pilates</label>
-          <label class="opt-item"><input type="checkbox" value="Ne treniram"> Ne treniram</label>
-        </div>
-        <div class="extra"><input type="text" id="trainingDetail" placeholder="Koji sport/aktivnost (plivanje, borilački, trčanje...)"></div>
-      </div>
-      <div class="question"><label>Frekvencija treninga</label>
-        <select id="trainingFreq">
-          <option value="">Odaberite...</option><option>Ne treniram</option><option>1-2x nedeljno</option><option>3-4x nedeljno</option><option>5-6x nedeljno</option>
-        </select>
-      </div>
-      <div class="question"><label>Oporavak posle treninga</label>
-        <select id="recovery">
-          <option value="">Odaberite...</option><option>Odlično</option><option>OK, blagi umor</option><option>Umoran, sporo</option><option>Iscrpljen danima</option>
-        </select>
-      </div>
-      <div class="question"><label>Aktivne povrede</label><input type="text" id="injuries" placeholder="Npr. bol u kolenu"></div>
-      <div class="question"><label>Dostupna oprema</label>
-        <div class="opts" id="equipOpts">
-          <label class="opt-item"><input type="checkbox" value="Teretana"> Teretana</label>
-          <label class="opt-item"><input type="checkbox" value="Kućni trening"> Kućni trening</label>
-          <label class="opt-item"><input type="checkbox" value="Ništa"> Ništa</label>
-        </div>
-        <div class="extra"><input type="text" id="equipDetail" placeholder="Koja oprema tačno?"></div>
-      </div>
-    </div>
-
-    <!-- M07 -->
-    <div class="section">
-      <div class="section-title">🔬 M-07: Laboratorija</div>
-      <div class="question"><label>Status laboratorijskih nalaza</label>
-        <select id="labStatus">
-          <option value="">Odaberite...</option><option>Imam (priložio/la sam)</option><option>Imam ali starije od 6 meseci</option><option>Nemam</option>
-        </select>
-        <div class="extra"><input type="text" id="labValues" placeholder="Ključne vrednosti koje znaš (npr. feritin 18)"></div>
-      </div>
-      <div class="question"><label>Napomena / Ostalo</label><textarea id="notes" rows="2" placeholder="Bilo šta važno..."></textarea></div>
-    </div>
-
-    <button type="button" id="submitBtn">▶▶ ZAPOČNI HIBRIDNU ANALIZU</button>
-  </form>
-
-  <!-- REZULTATI -->
-  <div id="resultPanel" class="hidden">
-    <div style="text-align:center; margin:20px 0">
-      <h2>ANALIZA PRIMLJENA</h2>
-      <p>Podaci su prosleđeni konsultantu Ivanu Paunoviću.<br>Excel vodič za ishranu i trening stiže na vaš email.</p>
-      <div id="flagsArea"></div>
-      <div class="results" id="answersArea"></div>
-      <button id="copyBtn">📋 KOPIRAJ ODGOVORE</button>
-    </div>
-  </div>
 </div>
 
 <script>
-  // DOM elementi
-  const introDiv = document.getElementById('intro');
-  const formDiv = document.getElementById('mainForm');
-  const resultDiv = document.getElementById('resultPanel');
-  document.getElementById('startBtn').onclick = () => { introDiv.classList.add('hidden'); formDiv.classList.remove('hidden'); };
-  
-  // Range prikazi
-  document.getElementById('headache').oninput = () => document.getElementById('headacheVal').innerText = document.getElementById('headache').value;
-  document.getElementById('hairLoss').oninput = () => document.getElementById('hairLossVal').innerText = document.getElementById('hairLoss').value;
-  document.getElementById('sleepQuality').oninput = () => document.getElementById('sleepQualityVal').innerText = document.getElementById('sleepQuality').value;
-  document.getElementById('stressLevel').oninput = () => document.getElementById('stressVal').innerText = document.getElementById('stressLevel').value;
-  
-  // Pomoćne funkcije za prikupljanje podataka
-  function getCheckedValues(containerId) {
-    let vals = [];
-    document.querySelectorAll(`#${containerId} input:checked`).forEach(cb => vals.push(cb.value));
-    return vals.join(', ') || '—';
-  }
-  function getSelect(id) { let el = document.getElementById(id); return el.value ? el.value : '—'; }
-  function getText(id) { let el = document.getElementById(id); return el.value.trim() ? el.value.trim() : '—'; }
-  function getRange(id) { return document.getElementById(id).value; }
-  
-  document.getElementById('submitBtn').onclick = async () => {
-    // Prikupljanje svih podataka
-    const formData = {
-      'Ime': getText('name'),
-      'Email': getText('email'),
-      'Godine': getText('age'),
-      'Visina': getText('height'),
-      'Težina': getText('weight'),
-      'Cilj': getSelect('goal'),
-      'Cilj (ostalo)': getText('goalOther'),
-      'Tegobe stomak': getCheckedValues('stomakOpts'),
-      'Tegobe detalji': getText('stomakOther'),
-      'Pospanost posle obroka': getSelect('postMealSleep'),
-      'Pospanost detalji': getText('postMealSleepDetail'),
-      'Reakcije na hranu': getCheckedValues('reactionOpts'),
-      'Reakcije ostalo': getText('reactionOther'),
-      'Bolovi u telu': getSelect('pain'),
-      'Bolovi detalji': getText('painDetail'),
-      'Glavobolje (1-10)': getRange('headache'),
-      'Tip glavobolje': getText('headacheType'),
-      'Bruksizam': getSelect('bruxism'),
-      'Opadanje kose (1-10)': getRange('hairLoss'),
-      'Opadanje detalji': getText('hairLossDetail'),
-      'Koža': getCheckedValues('skinOpts'),
-      'Koža detalji': getText('skinDetail'),
-      'Termoregulacija': getSelect('thermo'),
-      'Hladni ekstremiteti': getText('coldExtremities'),
-      'Menstrualni ciklus': getSelect('menstrual'),
-      'Energija najniža': getSelect('energyLow'),
-      'Dijagnoze': getCheckedValues('diagOpts'),
-      'Dijagnoze ostalo': getText('diagOther'),
-      'Terapija insulin': getText('insulinTherapy'),
-      'Terapija štitna': getText('thyroidTherapy'),
-      'Deficiti': getCheckedValues('deficitOpts'),
-      'San (sati)': getSelect('sleepHours'),
-      'Kvalitet sna (1-10)': getRange('sleepQuality'),
-      'Vreme za spavanje': getSelect('bedtime'),
-      'Stres (1-10)': getRange('stressLevel'),
-      'Izvor stresa': getText('stressSource'),
-      'Suplementi': getCheckedValues('supplOpts'),
-      'Suplementi ostalo': getText('supplOther'),
-      'Omiljene namirnice': getText('favFoods'),
-      'Omiljena hrana': getText('favMeal'),
-      'Opis juče': getText('yesterdayDesc'),
-      'Zanimanje': getText('jobDesc'),
-      'Iskustvo trening': getSelect('trainingExp'),
-      'Tip treninga': getCheckedValues('trainingTypeOpts'),
-      'Trening detalji': getText('trainingDetail'),
-      'Frekvencija treninga': getSelect('trainingFreq'),
-      'Oporavak': getSelect('recovery'),
-      'Povrede': getText('injuries'),
-      'Oprema': getCheckedValues('equipOpts'),
-      'Oprema detalji': getText('equipDetail'),
-      'Status nalaza': getSelect('labStatus'),
-      'Vrednosti nalaza': getText('labValues'),
-      'Napomena': getText('notes')
-    };
+    // ========== CANVAS ANIMACIJA ==========
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let particles = [];
+    let dnaPoints = [];
+    let organs = [];
+    let dnaAngle = 0;
     
-    // Hibridna analiza (crvene zastavice)
-    let flags = [];
-    const diag = getCheckedValues('diagOpts');
-    const hair = parseInt(getRange('hairLoss'));
-    const stress = parseInt(getRange('stressLevel'));
-    const sleepQ = parseInt(getRange('sleepQuality'));
-    const recovery = getSelect('recovery');
-    const freq = getSelect('trainingFreq');
-    
-    if(diag.includes('PCOS')) flags.push('⚠️ PCOS dijagnoza → pre programa: hormonski panel (LH/FSH, testosteron, insulin, HOMA-IR).');
-    if(diag.includes('Hipotireoza')) flags.push('⛔ Hipotireoza/Hašimoto → obavezno proveriti TSH, fT3, fT4, Anti-TPO pre promene ishrane.');
-    if(diag.includes('Insulinska rezistencija')) flags.push('⚠️ Insulinska rezistencija → dijeta niskog GI, aerobni trening, kontrola HOMA-IR.');
-    if(hair >= 7) flags.push(`⚠️ Intenzivno opadanje kose (${hair}/10) → preporučuje se laboratorija: Feritin, TSH, Cink.`);
-    if(stress >= 8 && sleepQ <= 4) flags.push(`⚠️ Visok stres (${stress}/10) + loš san (${sleepQ}/10) → moguća HPA disregulacija. Preporuka: magnezijum + cirkadijalni protokol.`);
-    if(recovery === 'Iscrpljen danima' && (freq === '5-6x nedeljno')) flags.push('⚠️ Moguć overtraining sindrom → obavezan deload. Laboratorija: kortizol, testosteron, CRP.');
-    
-    // Prikaz rezultata
-    let answersHtml = '<div class="section-title">📋 PREGLED ODGOVORA</div>';
-    for(let [k,v] of Object.entries(formData)) {
-      if(v && v !== '—') answersHtml += `<div><strong>${k}:</strong> ${v}</div><hr>`;
+    function resizeCanvas() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+        initDNA();
+        initOrgans();
     }
-    document.getElementById('answersArea').innerHTML = answersHtml;
     
-    let flagsHtml = '';
-    if(flags.length) {
-      flagsHtml = '<div class="section-title" style="color:#ffaa00">🔬 HIBRIDNA ANALIZA - PREPORUKE</div>';
-      flags.forEach(f => { flagsHtml += `<div class="flag">${f}</div>`; });
+    function initDNA() {
+        dnaPoints = [];
+        for(let i = 0; i < 60; i++) {
+            let t = i / 60;
+            let y = t * height;
+            dnaPoints.push({ y, t });
+        }
     }
-    document.getElementById('flagsArea').innerHTML = flagsHtml;
     
-    // Slanje na email preko Formspree
-    try {
-      const fd = new FormData();
-      fd.append('Ime', formData['Ime']);
-      fd.append('Email', formData['Email']);
-      fd.append('Podaci', JSON.stringify(formData));
-      if(flags.length) fd.append('Hibridna_analiza', flags.join(' | '));
-      await fetch('https://formspree.io/f/xwvzgpak', { method: 'POST', body: fd, headers: { 'Accept': 'application/json' } });
-    } catch(e) { console.log('Greška pri slanju:', e); }
+    function initOrgans() {
+        organs = [
+            { emoji: '🧠', x: width * 0.1, y: height * 0.2, vx: 0.3, vy: 0.2, phase: 0 },
+            { emoji: '❤️', x: width * 0.85, y: height * 0.3, vx: -0.2, vy: 0.4, phase: 1 },
+            { emoji: '🫁', x: width * 0.15, y: height * 0.7, vx: 0.4, vy: -0.1, phase: 2 },
+            { emoji: '🫀', x: width * 0.75, y: height * 0.6, vx: -0.3, vy: 0.3, phase: 3 },
+            { emoji: '🦋', x: width * 0.5, y: height * 0.5, vx: 0.2, vy: -0.2, phase: 4 },
+            { emoji: '🦴', x: width * 0.3, y: height * 0.8, vx: 0.1, vy: -0.3, phase: 5 }
+        ];
+    }
     
-    formDiv.classList.add('hidden');
-    resultDiv.classList.remove('hidden');
-    window.scrollTo(0,0);
-  };
-  
-  document.getElementById('copyBtn').onclick = () => {
-    let text = document.getElementById('answersArea').innerText;
-    navigator.clipboard.writeText(text);
-    alert('Kopirano!');
-  };
+    // Čestice (RNK)
+    for(let i = 0; i < 100; i++) {
+        particles.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            radius: 1 + Math.random() * 3,
+            speedX: (Math.random() - 0.5) * 0.6,
+            speedY: (Math.random() - 0.5) * 0.4 + 0.2,
+            color: `rgba(0,212,255,${0.3 + Math.random() * 0.5})`,
+            life: Math.random() * Math.PI * 2
+        });
+    }
+    
+    function drawDNA() {
+        if(dnaPoints.length === 0) return;
+        ctx.save();
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#00d4ff';
+        
+        for(let i = 0; i < dnaPoints.length - 1; i++) {
+            let y1 = dnaPoints[i].y;
+            let y2 = dnaPoints[i+1].y;
+            let x1_left = width * 0.2 + Math.sin(i * 0.3 + dnaAngle) * 45;
+            let x1_right = width * 0.2 + Math.sin(i * 0.3 + Math.PI + dnaAngle) * 45;
+            let x2_left = width * 0.2 + Math.sin((i+1) * 0.3 + dnaAngle) * 45;
+            let x2_right = width * 0.2 + Math.sin((i+1) * 0.3 + Math.PI + dnaAngle) * 45;
+            
+            ctx.beginPath();
+            ctx.moveTo(x1_left, y1);
+            ctx.lineTo(x2_left, y2);
+            ctx.strokeStyle = `rgba(0,212,255,${0.4 + Math.sin(dnaAngle + i * 0.2) * 0.2})`;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(x1_right, y1);
+            ctx.lineTo(x2_right, y2);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(x1_left, y1);
+            ctx.lineTo(x1_right, y1);
+            ctx.strokeStyle = `rgba(255,204,0,${0.3 + Math.sin(dnaAngle + i * 0.3) * 0.2})`;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+        
+        for(let i = 0; i < dnaPoints.length; i++) {
+            let y = dnaPoints[i].y;
+            let x_left = width * 0.2 + Math.sin(i * 0.3 + dnaAngle) * 45;
+            let x_right = width * 0.2 + Math.sin(i * 0.3 + Math.PI + dnaAngle) * 45;
+            ctx.beginPath();
+            ctx.arc(x_left, y, 3, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(0,212,255,${0.7 + Math.sin(dnaAngle + i * 0.2) * 0.2})`;
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(x_right, y, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+    
+    function drawRNK() {
+        for(let p of particles) {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fillStyle = p.color;
+            ctx.fill();
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = '#00d4ff';
+            
+            p.x += p.speedX;
+            p.y += p.speedY;
+            p.life += 0.02;
+            
+            if(p.x < 0 || p.x > width) p.speedX *= -1;
+            if(p.y < 0) { p.y = height; p.x = Math.random() * width; }
+            if(p.y > height) { p.y = 0; p.x = Math.random() * width; }
+            
+            p.color = `rgba(0,212,255,${0.2 + Math.sin(p.life) * 0.3})`;
+        }
+        ctx.shadowBlur = 0;
+    }
+    
+    function drawOrgans() {
+        ctx.font = '36px "Segoe UI Emoji"';
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = '#ffcc00';
+        for(let organ of organs) {
+            organ.x += organ.vx;
+            organ.y += organ.vy;
+            organ.phase += 0.02;
+            
+            if(organ.x < 40) organ.vx = Math.abs(organ.vx);
+            if(organ.x > width - 40) organ.vx = -Math.abs(organ.vx);
+            if(organ.y < 40) organ.vy = Math.abs(organ.vy);
+            if(organ.y > height - 40) organ.vy = -Math.abs(organ.vy);
+            
+            let floatY = Math.sin(organ.phase) * 6;
+            ctx.fillStyle = `rgba(255,204,0,${0.5 + Math.sin(organ.phase) * 0.2})`;
+            ctx.fillText(organ.emoji, organ.x, organ.y + floatY);
+        }
+        ctx.shadowBlur = 0;
+    }
+    
+    function drawBackground() {
+        let grad = ctx.createLinearGradient(0, 0, width, height);
+        grad.addColorStop(0, '#0a0c14');
+        grad.addColorStop(1, '#03050a');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, width, height);
+    }
+    
+    function animate() {
+        if(!ctx) return;
+        drawBackground();
+        dnaAngle += 0.02;
+        drawDNA();
+        drawRNK();
+        drawOrgans();
+        requestAnimationFrame(animate);
+    }
+    
+    window.addEventListener('resize', () => { resizeCanvas(); initOrgans(); });
+    resizeCanvas();
+    animate();
+    
+    // ========== FORM FUNKCIJE ==========
+    function $(id) { return document.getElementById(id); }
+    function show(id) { $(id).classList.remove('hidden'); }
+    function hide(id) { $(id).classList.add('hidden'); }
+    function showHolo(emoji) { 
+        let holo = document.querySelector('.hologram-screen');
+        if(!holo) return;
+        holo.innerHTML = `<span style="font-size:48px;">${emoji}</span>`;
+    }
+    
+    // Skale
+    function buildScale(containerId, hiddenId, defVal) {
+        const c = $(containerId);
+        if(!c) return;
+        for(let i = 1; i <= 10; i++) {
+            const btn = document.createElement('div');
+            btn.className = 'scale-btn';
+            btn.innerHTML = `<span class="snum">${i}</span>`;
+            if(i === defVal) { btn.classList.add('active'); $(hiddenId).value = i; }
+            btn.onclick = function() {
+                c.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                $(hiddenId).value = i;
+                updateProgress();
+            };
+            c.appendChild(btn);
+        }
+    }
+    buildScale('scale-headache','headache',1);
+    buildScale('scale-hairloss','hairloss',1);
+    buildScale('scale-sleepq','sleepq',5);
+    buildScale('scale-stress','stress',5);
+    
+    // Opcije stil
+    document.querySelectorAll('.opt-item input').forEach(inp => {
+        if(inp.checked) inp.closest('.opt-item').classList.add('selected');
+        inp.addEventListener('change', function() {
+            if(this.type === 'radio') {
+                document.querySelectorAll(`input[name="${this.name}"]`).forEach(r => r.closest('.opt-item').classList.remove('selected'));
+                this.closest('.opt-item').classList.add('selected');
+            } else {
+                if(this.checked) this.closest('.opt-item').classList.add('selected');
+                else this.closest('.opt-item').classList.remove('selected');
+            }
+            updateProgress();
+        });
+    });
+    
+    // Upload
+    let uploadedFiles = [];
+    function handleUpload(input) {
+        const previews = $('upload-previews');
+        Array.from(input.files).forEach(file => {
+            uploadedFiles.push(file.name);
+            if(file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'preview-thumb';
+                    previews.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                const div = document.createElement('div');
+                div.textContent = '📄 ' + file.name;
+                div.style.cssText = 'padding:4px 8px;background:rgba(0,212,255,0.1);border-radius:8px;font-size:10px;';
+                previews.appendChild(div);
+            }
+        });
+        updateProgress();
+    }
+    
+    function updateProgress() {
+        let filled = 0, total = 0;
+        document.querySelectorAll('#main-form input, #main-form textarea').forEach(el => {
+            if(el.type === 'hidden' || el.type === 'file') return;
+            total++;
+            if(el.type === 'checkbox' && el.checked) filled++;
+            else if(el.type === 'radio' && el.checked) filled++;
+            else if(el.value && el.value.trim()) filled++;
+        });
+        const pct = Math.min(Math.round((filled / total) * 100), 99);
+        $('#progress-bar').style.width = pct + '%';
+    }
+    
+    document.querySelectorAll('input, textarea').forEach(el => { if(el.type !== 'hidden') el.addEventListener('input', updateProgress); });
+    
+    function getRadio(name) { const e = document.querySelector(`input[name="${name}"]:checked`); return e ? e.value : '—'; }
+    function getChecks(name) { const e = document.querySelectorAll(`input[name="${name}"]:checked`); return e.length ? Array.from(e).map(x => x.value).join(', ') : '—'; }
+    function getScale(id) { return $(id) ? $(id).value : '—'; }
+    function getText(id) { return $(id) && $(id).value.trim() ? $(id).value.trim() : '—'; }
+    
+    function showForm() { hide('page-intro'); show('page-form'); window.scrollTo(0, 0); }
+    
+    async function submitForm() {
+        const name = getText('name') || 'Anoniman';
+        const email = getText('email');
+        
+        const data = {
+            'Ime': name, 'Email': email || 'Nije ostavljen',
+            'Godine': getText('age'), 'Visina': getText('height'), 'Tezina': getText('weight'),
+            'Cilj': getRadio('cilj'), 'Cilj ostalo': getText('cilj-ostalo'),
+            'Tegobe stomak': getChecks('tegobe-stomak'), 'Tegobe ostalo': getText('tegobe-ostalo'),
+            'Pospanost': getRadio('pospanost'), 'Pospanost detalji': getText('pospanost-detalji'),
+            'Reakcije': getChecks('reakcije'), 'Reakcije ostalo': getText('reakcije-ostalo'),
+            'Bolovi': getRadio('bolovi'), 'Bolovi detalji': getText('bolovi-detalji'),
+            'Glavobolje': getScale('headache'), 'Tip glavobolje': getText('glavobolje-tip'),
+            'Bruksizam': getRadio('bruksizam'), 'Bruksizam napomena': getText('bruksizam-napomena'),
+            'Opadanje kose': getScale('hairloss'), 'Opadanje detalji': getText('opadanje-detalji'),
+            'Koza': getChecks('koza'), 'Koza detalji': getText('koza-detalji'),
+            'Termoregulacija': getRadio('termo'), 'Hladni ekstremiteti': getText('hladni-ekstremiteti'), 'Termo napomena': getText('termo-napomena'),
+            'Menstrualni': getRadio('menstrual'), 'Menstrual detalji': getText('menstrual-detalji'),
+            'Energija': getRadio('energija'), 'Energija napomena': getText('energija-napomena'),
+            'Dijagnoze': getChecks('dijagnoze'), 'Dijagnoze ostalo': getText('dijagnoze-ostalo'),
+            'Terapija insulin': getText('insulin-terapija'), 'Terapija stitna': getText('thyroid-terapija'),
+            'Deficiti': getChecks('deficiti'), 'Deficiti ostalo': getText('deficiti-ostalo'),
+            'San sati': getRadio('san-sati'), 'San napomena': getText('san-napomena'),
+            'Kvalitet sna': getScale('sleepq'), 'Bedtime': getRadio('bedtime'),
+            'Stres': getScale('stress'), 'Izvor stresa': getText('stres-izvor'),
+            'Suplementi': getChecks('suplementi'), 'Suplementi ostalo': getText('suplementi-ostalo'),
+            'Omiljene namirnice': getText('fav_foods'), 'Omiljena hrana': getText('fav_meal'),
+            'Juce dan': getText('yesterday'), 'Zanimanje': getText('occupation'),
+            'Iskustvo trening': getRadio('iskustvo'), 'Iskustvo detalji': getText('iskustvo-detalji'),
+            'Tip treninga': getChecks('tip-treninga'), 'Trening detalji': getText('trening-detalji'), 'Trening ostalo': getText('trening-ostalo'),
+            'Frekvencija': getRadio('frekvencija'), 'Oporavak': getRadio('oporavak'), 'Oporavak napomena': getText('oporavak-napomena'),
+            'Performans': getRadio('performans'), 'Povrede': getText('injuries'),
+            'Oprema': getChecks('oprema'), 'Oprema detalji': getText('oprema-detalji'),
+            'Status nalaza': getRadio('status-nalaza'), 'Vrednosti nalaza': getText('nalaz-vrednosti'),
+            'Napomena': getText('notes')
+        };
+        
+        // HIBRIDNA ANALIZA
+        const flags = [];
+        const dij = getChecks('dijagnoze');
+        const hair = parseInt(getScale('hairloss'));
+        const stress = parseInt(getScale('stress'));
+        const sleepq = parseInt(getScale('sleepq'));
+        const oporavak = getRadio('oporavak');
+        const frekvencija = getRadio('frekvencija');
+        
+        if(dij.includes('PCOS')) flags.push({t:'warn', m:'⚠️ PCOS dijagnoza → pre programa: LH/FSH, testosteron, insulin, HOMA-IR panel.'});
+        if(dij.includes('Hipotireoza')) flags.push({t:'alert', m:'⛔ Hipotireoza/Hašimoto → TSH, fT3, fT4, Anti-TPO hitno pre svake promene ishrane.'});
+        if(dij.includes('Insulinska rezistencija')) flags.push({t:'warn', m:'⚠️ Insulinska rezistencija → dijeta niskog GI, aerobni trening, HOMA-IR kontrola.'});
+        if(hair >= 7) flags.push({t:'warn', m:`⚠️ Intenzivno opadanje kose (${hair}/10) → Ferritin, TSH, Zn — laboratorija pre programa.`});
+        if(stress >= 8 && sleepq <= 4) flags.push({t:'warn', m:`⚠️ Visok stres (${stress}/10) + loš san (${sleepq}/10) → HPA disregulacija. Magnezijum + cirkadijalni protokol.`});
+        if(oporavak === 'Iscrpljen' && (frekvencija === '5-6x' || frekvencija === '5-6x nedeljno')) flags.push({t:'warn', m:'⚠️ Moguć Overtraining Syndrome → mandatorni deload. Lab: kortizol, testosteron, CRP.'});
+        
+        // Prikaz odgovora
+        const grid = $('res-answers');
+        grid.innerHTML = '';
+        Object.entries(data).forEach(([k,v]) => { if(v !== '—') grid.innerHTML += `<div class="ans-item"><div class="ans-key">${k}</div><div class="ans-val">${v}</div></div>`; });
+        $('#res-name').innerHTML = '✅ HVALA, ' + name.split(' ')[0].toUpperCase() + '!';
+        
+        const flagsEl = $('#res-flags');
+        flagsEl.innerHTML = '';
+        if(flags.length) {
+            let html = `<div class="result-panel ${flags.some(f => f.t === 'alert') ? 'flag-alert' : 'flag-warn'}"><div class="rp-label">🔬 HIBRIDNA ANALIZA - PREPORUKE</div>`;
+            flags.forEach(f => { html += `<div class="flag-item">${f.m}</div>`; });
+            html += '</div>';
+            flagsEl.innerHTML = html;
+        }
+        
+        // Copy tekst
+        let txt = '═══════════════════════════\nHYBRID HEALTH SYSTEM\nHIBRIDNA ANALIZA\nIvan Paunović\n═══════════════════════════\n\n';
+        Object.entries(data).forEach(([k,v]) => { if(v !== '—') txt += `${k}: ${v}\n`; });
+        if(flags.length) txt += '\n🔬 HIBRIDNA ANALIZA - PREPORUKE:\n' + flags.map(f => f.m).join('\n') + '\n';
+        if(uploadedFiles.length) txt += `\n📋 Priloženi nalazi: ${uploadedFiles.join(', ')}\n`;
+        $('#copy-text').value = txt;
+        
+        // Slanje na Formspree
+        try {
+            const fd = new FormData();
+            fd.append('Ime', name);
+            fd.append('Email', email);
+            fd.append('Podaci', JSON.stringify(data));
+            if(flags.length) fd.append('Hibridna_analiza', flags.map(f => f.m).join(' | '));
+            await fetch('https://formspree.io/f/xwvzgpak', { method: 'POST', body: fd, headers: { 'Accept': 'application/json' } });
+        } catch(e) {}
+        
+        $('#progress-bar').style.width = '100%';
+        hide('page-form');
+        show('page-results');
+        window.scrollTo(0, 0);
+    }
+    
+    function copyAnswers() { const ta = $('#copy-text'); ta.select(); document.execCommand('copy'); alert('Kopirano!'); }
+    updateProgress();
 </script>
 </body>
 </html>
