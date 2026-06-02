@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <title>Hybrid Health System — Ivan Paunović</title>
+    <style>
+        :root { --bg: #020b18; --cyan: #00d4ff; --glass: rgba(10, 25, 45, 0.8); }
+        body { background: var(--bg); color: #e8f4ff; font-family: 'Inter', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        
+        /* Skener */
+        #scanner-overlay { position: fixed; inset: 0; background: var(--bg); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
+        .scan-bar { width: 300px; height: 4px; background: rgba(0,212,255,0.1); margin-top: 20px; overflow: hidden; border-radius: 2px; }
+        .scan-progress { width: 0%; height: 100%; background: var(--cyan); transition: width 0.5s; box-shadow: 0 0 15px var(--cyan); }
+        
+        /* Forma */
+        .q-panel { background: var(--glass); backdrop-filter: blur(10px); padding: 30px; border: 1px solid var(--cyan); border-radius: 15px; width: 350px; }
+        input, textarea { width: 100%; margin-bottom: 15px; background: rgba(0,0,0,0.3); border: 1px solid var(--cyan); color: white; padding: 10px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: var(--cyan); border: none; cursor: pointer; font-family: 'Orbitron'; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <!-- Skener -->
+    <div id="scanner-overlay">
+        <div style="font-size: 40px;">🧬</div>
+        <div id="scan-text" style="color:var(--cyan); font-family:'Orbitron'; margin-top:10px;">POKRETANJE HIBRIDNE ANALIZE...</div>
+        <div class="scan-bar"><div class="scan-progress" id="bar"></div></div>
+    </div>
+
+    <!-- Forma povezana sa Formspree iz image.png -->
+    <div class="q-panel">
+        <form id="main-form" action="https://formspree.io/f/xwvzgpak" method="POST">
+            <input type="text" name="ime" placeholder="Ime i prezime" required>
+            <input type="email" name="email" placeholder="Email adresa" required>
+            <textarea name="poruka" placeholder="Tvoj cilj/napomena"></textarea>
+            
+            <button type="button" onclick="processForm()">POKRENI HIBRIDNU ANALIZU</button>
+        </form>
+    </div>
+
+    <script>
+        function processForm() {
+            const overlay = document.getElementById('scanner-overlay');
+            const bar = document.getElementById('bar');
+            const text = document.getElementById('scan-text');
+            const form = document.getElementById('main-form');
+
+            overlay.style.display = 'flex';
+            bar.style.width = '100%';
+            
+            // Simulacija analize od 3 sekunde pre slanja
+            setTimeout(() => {
+                form.submit();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
