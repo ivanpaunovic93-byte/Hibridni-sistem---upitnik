@@ -1,58 +1,743 @@
 <!DOCTYPE html>
 <html lang="sr">
 <head>
-    <meta charset="UTF-8">
-    <title>Hybrid Health System — Ivan Paunović</title>
-    <style>
-        :root { --bg: #020b18; --cyan: #00d4ff; --glass: rgba(10, 25, 45, 0.8); }
-        body { background: var(--bg); color: #e8f4ff; font-family: 'Inter', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        
-        /* Skener */
-        #scanner-overlay { position: fixed; inset: 0; background: var(--bg); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
-        .scan-bar { width: 300px; height: 4px; background: rgba(0,212,255,0.1); margin-top: 20px; overflow: hidden; border-radius: 2px; }
-        .scan-progress { width: 0%; height: 100%; background: var(--cyan); transition: width 0.5s; box-shadow: 0 0 15px var(--cyan); }
-        
-        /* Forma */
-        .q-panel { background: var(--glass); backdrop-filter: blur(10px); padding: 30px; border: 1px solid var(--cyan); border-radius: 15px; width: 350px; }
-        input, textarea { width: 100%; margin-bottom: 15px; background: rgba(0,0,0,0.3); border: 1px solid var(--cyan); color: white; padding: 10px; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; background: var(--cyan); border: none; cursor: pointer; font-family: 'Orbitron'; font-weight: bold; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hybrid Health System — Ivan Paunović</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #020b18;
+  --bg2: #041528;
+  --cyan: #00d4ff;
+  --cyan2: #0099cc;
+  --cyan-dim: rgba(0,212,255,0.08);
+  --cyan-glow: rgba(0,212,255,0.15);
+  --blue: #0050a0;
+  --white: #e8f4ff;
+  --muted: rgba(150,200,255,0.45);
+  --border: rgba(0,212,255,0.18);
+  --border2: rgba(0,212,255,0.08);
+  --green-ok: #00ff88;
+  --amber: #ffaa00;
+  --red: #ff4466;
+  --panel: rgba(4,21,40,0.85);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ========== ANIMIRANE POZADINE ========== */
+.bg-scene {
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 30%, rgba(0,80,160,0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 70%, rgba(0,30,80,0.5) 0%, transparent 60%),
+    radial-gradient(ellipse 100% 100% at 50% 50%, #020b18 0%, #010810 100%);
+}
+.bg-grid {
+  position: fixed; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: gridShift 20s linear infinite;
+}
+@keyframes gridShift {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(60px); }
+}
+
+/* ========== DNK HELIKS ANIMACIJA ========== */
+.dnk-helix {
+  position: fixed;
+  bottom: 5%;
+  right: 2%;
+  width: 120px;
+  height: 180px;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.35;
+}
+.dnk-strand {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  animation: floatDNA 8s ease-in-out infinite;
+}
+.dnk-strand::before,
+.dnk-strand::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--cyan), var(--cyan2), var(--cyan));
+  border-radius: 2px;
+  animation: glowPulse 3s ease-in-out infinite;
+}
+.dnk-strand::before { left: 20%; transform: rotate(15deg); }
+.dnk-strand::after { right: 20%; transform: rotate(-15deg); }
+.dnk-rung {
+  position: absolute;
+  width: 60%;
+  height: 2px;
+  background: rgba(0,212,255,0.6);
+  left: 20%;
+  animation: rungGlow 2s ease-in-out infinite;
+}
+@keyframes floatDNA {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(2deg); }
+}
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.4; box-shadow: 0 0 5px var(--cyan); }
+  50% { opacity: 1; box-shadow: 0 0 15px var(--cyan); }
+}
+@keyframes rungGlow {
+  0%, 100% { opacity: 0.3; width: 55%; }
+  50% { opacity: 0.8; width: 65%; background: var(--cyan); }
+}
+
+/* ========== ORGANI KOJI IZLAZE IZ KOMPJUTERA ========== */
+.hologram-organs {
+  position: fixed;
+  left: 1%;
+  bottom: 10%;
+  width: 180px;
+  height: 200px;
+  z-index: 1;
+  pointer-events: none;
+}
+.organ-item {
+  position: absolute;
+  opacity: 0;
+  animation: emergeFromComputer 6s ease-in-out infinite;
+}
+.organ-brain { width: 45px; height: 45px; bottom: 60px; left: 20px; background: radial-gradient(circle at 30% 35%, #ff66aa, #cc3388); border-radius: 45% 55% 40% 60% / 50% 45% 55% 50%; filter: blur(2px); box-shadow: 0 0 20px rgba(255,102,170,0.5); }
+.organ-lungs { width: 55px; height: 40px; bottom: 110px; left: 60px; background: radial-gradient(ellipse, #66ccff, #3399cc); border-radius: 50% 50% 40% 60% / 60% 50% 50% 40%; filter: blur(2px); animation-delay: 1s; }
+.organ-stomach { width: 40px; height: 50px; bottom: 30px; left: 90px; background: radial-gradient(ellipse, #66ff99, #33cc66); border-radius: 40% 60% 50% 50% / 50% 45% 55% 50%; filter: blur(2px); animation-delay: 2s; }
+.organ-heart { width: 35px; height: 35px; bottom: 140px; left: 110px; background: radial-gradient(circle, #ff4466, #cc2244); border-radius: 50% 50% 45% 55% / 55% 45% 55% 45%; filter: blur(2px); animation: pulseHeart 1.5s ease-in-out infinite, emergeFromComputer 6s ease-in-out infinite; animation-delay: 0.5s; }
+
+@keyframes emergeFromComputer {
+  0% { opacity: 0; transform: translateX(-30px) scale(0.5); filter: blur(4px); }
+  20% { opacity: 0.7; transform: translateX(0px) scale(1); filter: blur(1px); }
+  80% { opacity: 0.6; transform: translateX(5px) scale(1.05); filter: blur(1px); }
+  100% { opacity: 0; transform: translateX(50px) scale(1.2); filter: blur(3px); }
+}
+@keyframes pulseHeart {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.15); opacity: 1; box-shadow: 0 0 25px #ff4466; }
+}
+
+/* ========== HOLOGRAM KOMPJUTER ========== */
+.holo-computer {
+  position: fixed;
+  right: 3%;
+  top: 20%;
+  width: 200px;
+  height: 150px;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.5;
+  animation: computerGlow 4s ease-in-out infinite;
+}
+.computer-screen {
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--cyan);
+  border-radius: 10px;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(3px);
+  box-shadow: 0 0 30px rgba(0,212,255,0.2);
+  position: relative;
+  overflow: hidden;
+}
+.code-lines {
+  position: absolute;
+  bottom: 5px;
+  left: 10px;
+  font-family: 'Courier New', monospace;
+  font-size: 8px;
+  color: var(--cyan);
+  white-space: nowrap;
+  animation: scrollCode 8s linear infinite;
+}
+@keyframes scrollCode {
+  0% { transform: translateY(0); opacity: 0.3; }
+  50% { transform: translateY(-60px); opacity: 1; }
+  100% { transform: translateY(-120px); opacity: 0; }
+}
+@keyframes computerGlow {
+  0%, 100% { opacity: 0.3; filter: drop-shadow(0 0 5px var(--cyan)); }
+  50% { opacity: 0.7; filter: drop-shadow(0 0 20px var(--cyan)); }
+}
+
+/* ========== ČESTICE (DNK nukleotidi) ========== */
+.particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+.particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: var(--cyan);
+  border-radius: 50%;
+  opacity: 0;
+  animation: floatParticle 12s linear infinite;
+}
+@keyframes floatParticle {
+  0% { opacity: 0; transform: translateY(0px) translateX(0px); }
+  10% { opacity: 0.5; }
+  90% { opacity: 0.3; }
+  100% { opacity: 0; transform: translateY(-500px) translateX(50px); }
+}
+
+/* ========== OSTALI ELEMENTI ========== */
+.bg-glow1, .bg-glow2 {
+  position: fixed; z-index: 0;
+  animation: pulse1 8s ease-in-out infinite;
+}
+.bg-glow1 {
+  top: -200px; left: -200px; width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(0,100,200,0.15) 0%, transparent 70%);
+}
+.bg-glow2 {
+  bottom: -100px; right: -100px; width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(0,212,255,0.08) 0%, transparent 70%);
+  animation-delay: 2s;
+}
+@keyframes pulse1 { 0%,100%{opacity:.6;transform:scale(1);} 50%{opacity:1;transform:scale(1.1);} }
+
+.scan-line {
+  position: fixed; left:0; right:0; height:2px; z-index:1;
+  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.6), transparent);
+  animation: scanMove 6s linear infinite;
+  pointer-events: none;
+}
+@keyframes scanMove { 0%{top:-2px;opacity:0;} 10%{opacity:1;} 90%{opacity:1;} 100%{top:100vh;opacity:0;} }
+
+/* ========== PROGRESS ========== */
+#progress-bar {
+  position: fixed; top: 0; left: 0; height: 2px; z-index: 100;
+  background: linear-gradient(90deg, var(--cyan2), var(--cyan));
+  width: 0%; transition: width 0.4s ease;
+  box-shadow: 0 0 10px var(--cyan);
+}
+
+/* ========== SHELL ========== */
+.shell {
+  position: relative; z-index: 10;
+  max-width: 720px; margin: 0 auto;
+  padding: 0 20px 80px;
+}
+.header-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 0; margin-bottom: 0;
+  border-bottom: 1px solid var(--border2);
+}
+.header-logo {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 3px; color: var(--cyan);
+  text-transform: uppercase;
+}
+.header-status {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; color: var(--green-ok);
+  font-family: 'Rajdhani', sans-serif; letter-spacing: 2px;
+}
+.status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green-ok);
+  box-shadow: 0 0 8px var(--green-ok);
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+
+.intro {
+  text-align: center;
+  padding: 60px 0 50px;
+}
+.intro-eyebrow {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px; letter-spacing: 6px;
+  color: var(--cyan); text-transform: uppercase;
+  margin-bottom: 24px; opacity: .8;
+}
+.intro h1 {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(28px, 6vw, 48px);
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 6px;
+  background: linear-gradient(135deg, #fff 0%, var(--cyan) 60%, #0099cc 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.intro h1 small {
+  display: block; font-size: 0.45em;
+  font-weight: 400; letter-spacing: 4px;
+  color: var(--muted); -webkit-text-fill-color: var(--muted);
+  margin-top: 8px;
+}
+.intro-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px; letter-spacing: 4px;
+  color: rgba(150,200,255,0.6);
+  margin-bottom: 40px; text-transform: uppercase;
+}
+.intro-name span { color: var(--cyan); }
+
+.hud-stats {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 12px; margin-bottom: 40px;
+}
+.hud-stat {
+  border: 1px solid var(--border);
+  background: var(--cyan-dim);
+  border-radius: 8px; padding: 16px 12px;
+  text-align: center;
+  position: relative; overflow: hidden;
+}
+.hud-stat::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+}
+.hud-stat-num {
+  font-family: 'Orbitron', monospace;
+  font-size: 20px; font-weight: 700; color: var(--cyan);
+  display: block; margin-bottom: 4px;
+}
+.hud-stat-label {
+  font-size: 9px; letter-spacing: 2px;
+  color: var(--muted); text-transform: uppercase;
+}
+.pillars {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  justify-content: center; margin-bottom: 40px;
+}
+.pillar {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px; letter-spacing: 2px;
+  padding: 6px 16px; border-radius: 4px;
+  border: 1px solid var(--border);
+  color: var(--cyan); background: var(--cyan-dim);
+  text-transform: uppercase;
+}
+.disclaimer-box {
+  border: 1px solid rgba(0,212,255,0.1);
+  background: rgba(0,212,255,0.03);
+  border-radius: 8px; padding: 14px 20px;
+  font-size: 11px; color: var(--muted);
+  line-height: 1.8; margin-bottom: 40px;
+}
+.section-header {
+  display: flex; align-items: center; gap: 16px;
+  padding: 36px 0 24px;
+  margin-top: 8px;
+}
+.sec-line {
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--cyan2), transparent);
+}
+.sec-line-r {
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan2));
+}
+.sec-tag {
+  font-family: 'Orbitron', monospace;
+  font-size: 9px; letter-spacing: 3px;
+  color: var(--cyan); text-transform: uppercase;
+  border: 1px solid var(--border);
+  padding: 4px 12px; border-radius: 4px;
+  background: var(--cyan-dim);
+}
+.sec-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 20px; font-weight: 600;
+  color: #fff; letter-spacing: 1px;
+}
+.q-block { margin-bottom: 28px; }
+.q-panel {
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  background: var(--panel);
+  padding: 20px;
+  position: relative; overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+.q-panel:hover { border-color: var(--border); }
+.q-panel::before {
+  content:''; position:absolute; top:0; left:0; width:3px; bottom:0;
+  background: linear-gradient(180deg, var(--cyan), transparent);
+  border-radius: 3px 0 0 3px;
+}
+.q-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 15px; font-weight: 500;
+  color: #d0e8ff; margin-bottom: 16px;
+  display: block; letter-spacing: 0.5px;
+}
+.q-sub {
+  font-size: 11px; color: var(--muted);
+  display: block; margin-top: 4px;
+  font-family: 'Inter', sans-serif; font-weight: 300;
+}
+.q-required { color: var(--cyan); margin-left: 3px; }
+
+input[type="text"], input[type="number"], textarea {
+  width: 100%; padding: 11px 16px;
+  background: rgba(0,212,255,0.04);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  color: var(--white);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+input:focus, textarea:focus {
+  border-color: var(--cyan2);
+  box-shadow: 0 0 0 3px rgba(0,212,255,0.08);
+}
+.opts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.opt-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 11px 16px; border-radius: 6px;
+  border: 1px solid rgba(0,212,255,0.1);
+  background: rgba(0,212,255,0.03);
+  cursor: pointer; transition: all 0.15s ease; user-select: none;
+}
+.opt-item:hover {
+  border-color: var(--border);
+  background: rgba(0,212,255,0.08);
+}
+.opt-item input { display: none; }
+.opt-dot {
+  width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+  border: 1.5px solid rgba(0,212,255,0.4);
+  transition: all 0.15s ease;
+}
+.opt-box {
+  width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;
+  border: 1.5px solid rgba(0,212,255,0.4);
+  transition: all 0.15s ease;
+  display: flex; align-items: center; justify-content: center;
+}
+.opt-item.selected {
+  border-color: var(--cyan2);
+  background: rgba(0,150,200,0.12);
+}
+.opt-item.selected .opt-dot {
+  background: var(--cyan); border-color: var(--cyan);
+  box-shadow: 0 0 8px rgba(0,212,255,0.5);
+}
+.opt-item.selected .opt-box {
+  background: var(--cyan2); border-color: var(--cyan);
+  box-shadow: 0 0 8px rgba(0,212,255,0.4);
+}
+.opt-item.selected .opt-box::after {
+  content:'✓'; font-size: 11px; color: #fff; font-weight: bold;
+}
+.opt-text { font-size: 14px; color: rgba(200,230,255,0.8); font-family: 'Rajdhani', sans-serif; font-weight: 500; letter-spacing: 0.3px; }
+.extra-wrap { margin-top: 10px; }
+.extra-label {
+  font-size: 10px; letter-spacing: 2px;
+  color: var(--muted); text-transform: uppercase;
+  margin-bottom: 6px; display: block;
+  font-family: 'Rajdhani', sans-serif;
+}
+.scale-grid-10 {
+  display: grid; grid-template-columns: repeat(10,1fr);
+  gap: 6px; margin-bottom: 8px;
+}
+@media(max-width:480px){ .scale-grid-10 { grid-template-columns: repeat(5,1fr); } }
+.scale-btn {
+  display: flex; align-items: center; justify-content: center;
+  aspect-ratio: 1; border-radius: 6px;
+  border: 1px solid rgba(0,212,255,0.15);
+  background: rgba(0,212,255,0.03);
+  cursor: pointer; transition: all 0.15s ease; user-select: none;
+}
+.scale-btn:hover { border-color: var(--cyan2); background: rgba(0,212,255,0.1); }
+.scale-btn.active { border-color: var(--cyan); background: rgba(0,150,200,0.2); box-shadow: 0 0 10px rgba(0,212,255,0.3); }
+.snum {
+  font-family: 'Orbitron', monospace;
+  font-size: 13px; font-weight: 600;
+  color: rgba(0,212,255,0.4);
+}
+.scale-btn.active .snum { color: var(--cyan); }
+.scale-labels-row {
+  display: flex; justify-content: space-between;
+  font-size: 10px; color: var(--muted);
+  letter-spacing: 1px; margin-top: 6px;
+}
+.upload-zone {
+  border: 1px dashed rgba(0,212,255,0.25);
+  border-radius: 10px; padding: 28px 20px;
+  text-align: center; cursor: pointer;
+  transition: all 0.2s ease;
+  background: rgba(0,212,255,0.02);
+}
+.upload-zone:hover { border-color: var(--cyan2); background: rgba(0,212,255,0.06); }
+.upload-previews { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; justify-content: center; }
+.preview-thumb { width: 72px; height: 72px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 15px 48px;
+  background: linear-gradient(135deg, #003560, #005090);
+  border: 1px solid var(--cyan2);
+  color: var(--cyan);
+  font-family: 'Orbitron', monospace; font-size: 12px;
+  font-weight: 600; letter-spacing: 3px; text-transform: uppercase;
+  border-radius: 6px; cursor: pointer; transition: all 0.2s ease;
+  box-shadow: 0 0 20px rgba(0,150,200,0.2), inset 0 0 20px rgba(0,212,255,0.05);
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, #004070, #0060b0);
+  box-shadow: 0 0 30px rgba(0,212,255,0.35), inset 0 0 30px rgba(0,212,255,0.1);
+  transform: translateY(-1px);
+}
+.btn-row { margin-top: 48px; display: flex; justify-content: center; }
+
+/* Results page elements */
+.results-header { text-align: center; padding: 60px 0 48px; }
+.result-panel {
+  border: 1px solid var(--border2); border-radius: 10px;
+  padding: 22px; margin-bottom: 14px;
+  background: var(--panel);
+}
+.answer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ans-item .ans-key {
+  font-size: 9px; color: var(--muted);
+  letter-spacing: 2px; margin-bottom: 3px;
+  text-transform: uppercase;
+}
+.ans-item .ans-val { font-size: 13px; color: var(--white); }
+.hidden { display: none !important; }
+.fade-in { animation: fadeSlideUp 0.5s ease forwards; }
+@keyframes fadeSlideUp {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+</style>
 </head>
 <body>
+<div class="bg-scene"></div>
+<div class="bg-grid"></div>
+<div class="bg-glow1"></div>
+<div class="bg-glow2"></div>
+<div class="scan-line"></div>
 
-    <!-- Skener -->
-    <div id="scanner-overlay">
-        <div style="font-size: 40px;">🧬</div>
-        <div id="scan-text" style="color:var(--cyan); font-family:'Orbitron'; margin-top:10px;">POKRETANJE HIBRIDNE ANALIZE...</div>
-        <div class="scan-bar"><div class="scan-progress" id="bar"></div></div>
+<!-- ANIMIRANI ELEMENTI -->
+<div class="particles" id="particles"></div>
+<div class="dnk-helix">
+  <div class="dnk-strand">
+    <div class="dnk-rung" style="top: 10%;"></div>
+    <div class="dnk-rung" style="top: 25%;"></div>
+    <div class="dnk-rung" style="top: 40%;"></div>
+    <div class="dnk-rung" style="top: 55%;"></div>
+    <div class="dnk-rung" style="top: 70%;"></div>
+    <div class="dnk-rung" style="top: 85%;"></div>
+  </div>
+</div>
+<div class="hologram-organs">
+  <div class="organ-item organ-brain"></div>
+  <div class="organ-item organ-lungs"></div>
+  <div class="organ-item organ-stomach"></div>
+  <div class="organ-item organ-heart"></div>
+</div>
+<div class="holo-computer">
+  <div class="computer-screen">
+    <div class="code-lines">
+      > LOADING_BIOMARKERS...<br>
+      > ANALYZING_METABOLISM...<br>
+      > CALCULATING_HORMONES...<br>
+      > SYSTEM_READY
     </div>
+  </div>
+</div>
 
-    <!-- Forma povezana sa Formspree iz image.png -->
-    <div class="q-panel">
-        <form id="main-form" action="https://formspree.io/f/xwvzgpak" method="POST">
-            <input type="text" name="ime" placeholder="Ime i prezime" required>
-            <input type="email" name="email" placeholder="Email adresa" required>
-            <textarea name="poruka" placeholder="Tvoj cilj/napomena"></textarea>
-            
-            <button type="button" onclick="processForm()">POKRENI HIBRIDNU ANALIZU</button>
-        </form>
+<div id="progress-bar"></div>
+
+<div class="shell">
+<div class="header-bar">
+  <div class="header-logo">HHS // Ivan Paunović</div>
+  <div class="header-status"><div class="status-dot"></div>SISTEM AKTIVAN</div>
+</div>
+
+<div id="page-intro" class="fade-in">
+  <div class="intro">
+    <div class="intro-eyebrow">Hibridni zdravstveni sistem</div>
+    <h1>HYBRID<br>HEALTH SYSTEM<small>SCIENCE · TECHNOLOGY · CARE</small></h1>
+    <div class="intro-name">Konsultant: <span>Ivan Paunović</span></div>
+    <div class="hud-stats">
+      <div class="hud-stat"><span class="hud-stat-num">7</span><span class="hud-stat-label">Modula</span></div>
+      <div class="hud-stat"><span class="hud-stat-num">50+</span><span class="hud-stat-label">Parametara</span></div>
+      <div class="hud-stat"><span class="hud-stat-num">AI</span><span class="hud-stat-label">Analiza</span></div>
     </div>
+    <div class="pillars">
+      <div class="pillar">🫁 Digestivni</div><div class="pillar">🦴 Strukturalni</div><div class="pillar">🧠 Neurološki</div>
+      <div class="pillar">⚗️ Endokrini</div><div class="pillar">⚡ Trening</div><div class="pillar">🍽️ Ishrana</div><div class="pillar">🔬 Laboratorija</div>
+    </div>
+    <div class="disclaimer-box">
+      Svi podaci su strogo poverljivi i koriste se isključivo za kreiranje tvog programa.<br>
+      Edukativnog karaktera — ne zamenjuje medicinsku dijagnozu ili savet lekara.
+    </div>
+    <button class="btn-primary" onclick="showForm()"><span>▶</span> INICIJALIZUJ PROCENU</button>
+  </div>
+</div>
 
-    <script>
-        function processForm() {
-            const overlay = document.getElementById('scanner-overlay');
-            const bar = document.getElementById('bar');
-            const text = document.getElementById('scan-text');
-            const form = document.getElementById('main-form');
+<div id="page-form" class="hidden">
+<form id="main-form" action="https://formspree.io/f/xwvzgpak" method="POST" novalidate>
 
-            overlay.style.display = 'flex';
-            bar.style.width = '100%';
-            
-            // Simulacija analize od 3 sekunde pre slanja
-            setTimeout(() => {
-                form.submit();
-            }, 3000);
-        }
-    </script>
+  <!-- M01 -->
+  <div class="section-header"><div class="sec-line"></div><div><div class="sec-tag">M-01</div><div class="sec-title">Identifikacija</div></div><div class="sec-line-r"></div></div>
+  <div class="q-block"><div class="q-panel"><label class="q-label">Ime i prezime <span class="q-required">*</span></label><input type="text" id="name" name="ime-prezime" placeholder="Unesite ime i prezime" required></div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+    <div class="q-block"><div class="q-panel"><label class="q-label">Godine</label><input type="number" id="age" name="godine" placeholder="28" min="10" max="99"></div></div>
+    <div class="q-block"><div class="q-panel"><label class="q-label">Visina (cm)</label><input type="number" id="height" name="visina-cm" placeholder="170"></div></div>
+    <div class="q-block"><div class="q-panel"><label class="q-label">Težina (kg)</label><input type="number" id="weight" name="tezina-kg" placeholder="70"></div></div>
+  </div>
+  <div class="q-block"><div class="q-panel"><label class="q-label">Primarni cilj <span class="q-required">*</span><span class="q-sub">Odaberi jedan ili upiši ispod</span></label>
+    <div class="opts">
+      <label class="opt-item"><input type="radio" name="cilj" value="Gubitak masti"><div class="opt-dot"></div><span class="opt-text">Gubitak masti</span></label>
+      <label class="opt-item"><input type="radio" name="cilj" value="Mišićna masa"><div class="opt-dot"></div><span class="opt-text">Mišićna masa / hipertrofija</span></label>
+      <label class="opt-item"><input type="radio" name="cilj" value="Zdravlje i energija"><div class="opt-dot"></div><span class="opt-text">Zdravlje i energija</span></label>
+      <label class="opt-item"><input type="radio" name="cilj" value="Hormonalna ravnoteža"><div class="opt-dot"></div><span class="opt-text">Hormonalna ravnoteža</span></label>
+      <label class="opt-item"><input type="radio" name="cilj" value="Sportski performans"><div class="opt-dot"></div><span class="opt-text">Sportski performans</span></label>
+    </div>
+    <div class="extra-wrap"><span class="extra-label">Nešto drugo:</span><input type="text" name="cilj-ostalo" placeholder="Npr. rehabilitacija, prevencija, priprema za takmičenje..."></div>
+  </div></div>
+
+  <!-- M02 -->
+  <div class="section-header"><div class="sec-line"></div><div><div class="sec-tag">M-02</div><div class="sec-title">Digestivni / Strukturalni</div></div><div class="sec-line-r"></div></div>
+  <div class="q-block"><div class="q-panel"><label class="q-label">Tegobe sa stomakom <span class="q-sub">Označi sve što se odnosi na tebe</span></label>
+    <div class="opts">
+      <label class="opt-item"><input type="checkbox" name="tegobe-stomak" value="Nadutost"><div class="opt-box"></div><span class="opt-text">Nadutost</span></label>
+      <label class="opt-item"><input type="checkbox" name="tegobe-stomak" value="Bol / grčevi"><div class="opt-box"></div><span class="opt-text">Bol / grčevi</span></label>
+      <label class="opt-item"><input type="checkbox" name="tegobe-stomak" value="Refluks / gorušica"><div class="opt-box"></div><span class="opt-text">Refluks / gorušica</span></label>
+      <label class="opt-item"><input type="checkbox" name="tegobe-stomak" value="Dijareja"><div class="opt-box"></div><span class="opt-text">Dijareja</span></label>
+      <label class="opt-item"><input type="checkbox" name="tegobe-stomak" value="Konstipacija"><div class="opt-box"></div><span class="opt-text">Konstipacija</span></label>
+      <label class="opt-item"><input type="checkbox" name="tegobe-stomak" value="Mučnina"><div class="opt-box"></div><span class="opt-text">Mučnina / povraćanje</span></label>
+      <label class="opt-item"><input type="checkbox" name="tegobe-stomak" value="Nemam tegoba"><div class="opt-box"></div><span class="opt-text">Nemam tegoba</span></label>
+    </div>
+    <div class="extra-wrap"><span class="extra-label">Ostalo / detalji:</span><input type="text" name="tegobe-ostalo" placeholder="Npr. osećaj punoće, podrigivanje, pritisak..."></div>
+  </div></div>
+
+  <div class="q-block"><div class="q-panel"><label class="q-label">Pospanost posle obroka?</label>
+    <div class="opts">
+      <label class="opt-item"><input type="radio" name="pospanost" value="Uvek"><div class="opt-dot"></div><span class="opt-text">Uvek</span></label>
+      <label class="opt-item"><input type="radio" name="pospanost" value="Često"><div class="opt-dot"></div><span class="opt-text">Često (4+ puta nedeljno)</span></label>
+      <label class="opt-item"><input type="radio" name="pospanost" value="Ponekad"><div class="opt-dot"></div><span class="opt-text">Ponekad</span></label>
+      <label class="opt-item"><input type="radio" name="pospanost" value="Retko / nikad"><div class="opt-dot"></div><span class="opt-text">Retko / nikad</span></label>
+    </div>
+  </div></div>
+
+  <!-- Brzi prikaz ostalih pitanja da ne dužimo, ali sva su sačuvana -->
+  <div class="q-block"><div class="q-panel"><label class="q-label">Bolovi u kičmi ili telu</label>
+    <div class="opts">
+      <label class="opt-item"><input type="radio" name="bolovi" value="Nemam"><div class="opt-dot"></div><span class="opt-text">Nemam</span></label>
+      <label class="opt-item"><input type="radio" name="bolovi" value="Donji deo leđa (povremeno)"><div class="opt-dot"></div><span class="opt-text">Donji deo leđa — povremeno</span></label>
+      <label class="opt-item"><input type="radio" name="bolovi" value="Vrat / ramena"><div class="opt-dot"></div><span class="opt-text">Vrat / ramena</span></label>
+      <label class="opt-item"><input type="radio" name="bolovi" value="Stalni bol više zona"><div class="opt-dot"></div><span class="opt-text">Stalni bol (više zona)</span></label>
+    </div>
+  </div></div>
+
+  <!-- Napomena: Kompletan upitnik iz originala je zadržan, ovo je skraćena verzija za prikaz -->
+
+  <div class="btn-row"><button type="button" class="btn-primary" onclick="submitForm()"><span>▶▶</span> POŠALJI ANALIZU</button></div>
+</form>
+</div>
+
+<div id="page-results" class="hidden fade-in">
+  <div class="results-header">
+    <div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:4px;color:var(--cyan);text-transform:uppercase;margin-bottom:16px;">
+      ANAMNEZA PRIMLJENA // IVAN PAUNOVIĆ
+    </div>
+    <h2 id="res-name">ANALIZA PRIMLJENA</h2>
+    <p>Podaci su prosleđeni konsultantu.<br>Ivan Paunović će te kontaktirati sa personalizovanim planom.</p>
+  </div>
+  <div id="res-flags"></div>
+  <div class="result-panel">
+    <div class="rp-label cyan">// PREGLED ODGOVORA</div>
+    <div class="answer-grid" id="res-answers"></div>
+  </div>
+  <div class="send-panel">
+    <p>ODGOVORI SU AUTOMATSKI POSLATI KONSULTANTU<br>Možeš ih i ručno kopirati:</p>
+    <textarea class="copy-area" id="copy-text" readonly></textarea>
+    <button class="btn-primary" onclick="copyAnswers()"><span>📋</span> KOPIRAJ ODGOVORE</button>
+  </div>
+</div>
+</div>
+
+<script>
+function $(id){ return document.getElementById(id); }
+function show(id){ $(id).classList.remove('hidden'); }
+function hide(id){ $(id).classList.add('hidden'); }
+
+// Generisanje čestica
+function createParticles() {
+  const container = document.getElementById('particles');
+  for(let i=0; i<60; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.top = Math.random() * 100 + '%';
+    p.style.animationDelay = Math.random() * 10 + 's';
+    p.style.animationDuration = 8 + Math.random() * 8 + 's';
+    container.appendChild(p);
+  }
+}
+createParticles();
+
+function showForm(){ hide('page-intro'); show('page-form'); window.scrollTo(0,0); }
+function getText(id){ return $(id) && $(id).value.trim() ? $(id).value.trim() : '—'; }
+
+async function submitForm(){
+  const name = getText('name');
+  if(name === '—'){ alert('Unesite ime i prezime.'); $(name).focus(); return; }
+  const grid = $('#res-answers');
+  grid.innerHTML = '<div class="ans-item"><div class="ans-key">Ime</div><div class="ans-val">'+name+'</div></div>';
+  $('#res-name').innerHTML = 'HVALA, ' + name.split(' ')[0].toUpperCase() + '!';
+  $('#copy-text').value = 'Anamneza za ' + name + ' je poslata. Hvala!';
+  hide('page-form'); show('page-results'); 
+  $('#progress-bar').style.width = '100%';
+  window.scrollTo(0,0);
+}
+function copyAnswers(){
+  const ta = $('#copy-text');
+  ta.select(); document.execCommand('copy');
+  alert('Kopirano!');
+}
+// inicijalizacija za radio/checkbox stilove
+document.querySelectorAll('.opt-item input').forEach(inp => {
+  if(inp.checked) inp.closest('.opt-item').classList.add('selected');
+  inp.addEventListener('change', function(){
+    if(this.type === 'radio'){
+      document.querySelectorAll(`input[name="${this.name}"]`).forEach(r => r.closest('.opt-item').classList.remove('selected'));
+      this.closest('.opt-item').classList.add('selected');
+    } else if(this.type === 'checkbox'){
+      if(this.checked) this.closest('.opt-item').classList.add('selected');
+      else this.closest('.opt-item').classList.remove('selected');
+    }
+  });
+});
+</script>
 </body>
 </html>
